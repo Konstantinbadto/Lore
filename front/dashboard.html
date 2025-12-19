@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lore - Выбор Пути</title>
+    <link rel="stylesheet" href="style-dashboard.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Базовые стили для дашборда */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cinzel', serif;
+            background: #0a0a14;
+            color: #e0d0b8;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(20, 15, 10, 0.95);
+            border-bottom: 2px solid #8b6914;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .logo h1 {
+            font-family: 'MedievalSharp', cursive;
+            color: #d4af37;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #b89a6a;
+            font-size: 0.9rem;
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-avatar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: rgba(90, 60, 26, 0.6);
+            border: 1px solid #5a3c1a;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-avatar:hover {
+            background: rgba(139, 105, 20, 0.3);
+            border-color: #d4af37;
+        }
+
+        .user-name {
+            color: #d4af37;
+            font-weight: bold;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(20, 15, 10, 0.95);
+            border: 1px solid #5a3c1a;
+            border-radius: 8px;
+            min-width: 200px;
+            margin-top: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            color: #b89a6a;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(139, 105, 20, 0.2);
+            color: #e0d0b8;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .welcome-title {
+            color: #d4af37;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .highlight {
+            color: #ffd700;
+        }
+
+        .welcome-text {
+            color: #b89a6a;
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .role-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .role-card {
+            background: rgba(30, 25, 20, 0.7);
+            border: 2px solid #5a3c1a;
+            border-radius: 15px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .role-card:hover {
+            transform: translateY(-5px);
+            border-color: #d4af37;
+            box-shadow: 0 10px 25px rgba(139, 105, 20, 0.3);
+        }
+
+        .role-card.selected {
+            border-color: #ffd700;
+            background: rgba(139, 105, 20, 0.2);
+        }
+
+        .player-card.selected {
+            border-color: #4CAF50;
+        }
+
+        .master-card.selected {
+            border-color: #9C27B0;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .role-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 2px solid #d4af37;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #d4af37;
+        }
+
+        .role-title {
+            color: #d4af37;
+            font-size: 1.5rem; 
+        }
+
+        .role-features {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .role-features li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: #b89a6a;
+        }
+
+        .role-features i {
+            color: #d4af37;
+            width: 20px;
+        }
+
+        .card-footer {
+            border-top: 1px solid #5a3c1a;
+            padding-top: 15px;
+        }
+
+        .role-stats {
+            display: flex;
+            gap: 15px;
+            color: #b89a6a;
+            font-size: 0.9rem;
+        }
+
+        .selection-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(212, 175, 55, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffd700;
+            font-size: 1.2rem;
+            font-weight: bold;
+            backdrop-filter: blur(2px);
+        }
+
+        .action-section {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .confirm-btn {
+            background: linear-gradient(to bottom, #8b6914, #5a3c1a);
+            color: #f5e8c8;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .confirm-btn:hover {
+            background: linear-gradient(to bottom, #9a7914, #6a4c2a);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 105, 20, 0.4);
+        }
+
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: rgba(30, 25, 20, 0.7);
+            border: 1px solid #5a3c1a;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stat-card i {
+            font-size: 2rem;
+            color: #d4af37;
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 1.5rem;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: #b89a6a;
+            font-size: 0.9rem;
+        }
+
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+        .message.success {
+            background-color: rgba(40, 80, 40, 0.9);
+            color: #90ee90;
+            border: 1px solid #2e8b57;
+        }
+
+        .message.error {
+            background-color: rgba(80, 40, 40, 0.9);
+            color: #f08080;
+            border: 1px solid #a52a2a;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Верхняя панель с пользователем -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>LORE</h1>
+                    <span class="subtitle">Подземелья & Драконы</span>
+                </div>
+                <div class="user-menu">
+                    <div class="user-avatar" @click="toggleUserMenu">
+                        <i class="fas fa-helmet-battle"></i>
+                        <span class="user-name">{{ userName }}</span>
+                        <i class="fas fa-caret-down"></i>
+                    </div>
+                    <div class="dropdown-menu" v-if="showUserMenu">
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-user-shield"></i>
+                            Профиль
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-cog"></i>
+                            Настройки
+                        </a>
+                        <a href="#" class="dropdown-item" @click="logout">
+                            <i class="fas fa-door-open"></i>
+                            Выйти
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Основной контент -->
+        <main class="main-content">
+            <div class="welcome-section">
+                <h2 class="welcome-title">Добро пожаловать в Подземелья, <span class="highlight">{{ userName }}</span>!</h2>
+                <p class="welcome-text">Выбери свою судьбу. Стань воином или направляй судьбы других как мастер подземелий.</p>
+            </div>
+
+            <div class="role-selection">
+                <!-- Карточка Игрока -->
+                <div class="role-card player-card" @click="selectRole('player')"
+                     :class="{ 'selected': selectedRole === 'player' }">
+                    <div class="card-header">
+                        <div class="role-icon">
+                            <i class="fas fa-helmet-battle"></i>
+                        </div>
+                        <h3 class="role-title">Стать Игроком</h3>
+                    </div>
+                    <div class="card-content">
+                        <ul class="role-features">
+                            <li><i class="fas fa-shield"></i> Создай уникального персонажа</li>
+                            <li><i class="fas fa-dice-d20"></i> Участвуй в эпических кампаниях</li>
+                            <li><i class="fas fa-users"></i> Объединяйся с другими авантюристами</li>
+                            <li><i class="fas fa-treasure-chest"></i> Ищи сокровища и славу</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <span class="role-stats">
+                            <i class="fas fa-heart"></i> Теплая атмосфера среди друзей
+                            <i class="fas fa-bolt"></i> Новые приключения
+                        </span>
+                    </div>
+                    <div class="selection-overlay" v-if="selectedRole === 'player'">
+                        <i class="fas fa-check-circle"></i>
+                        Выбрано
+                    </div>
+                </div>
+
+                <!-- Карточка Мастера -->
+                <div class="role-card master-card" @click="selectRole('master')"
+                     :class="{ 'selected': selectedRole === 'master' }">
+                    <div class="card-header">
+                        <div class="role-icon">
+                            <i class="fas fa-wand-sparkles"></i>
+                        </div>
+                        <h3 class="role-title">Стать Мастером</h3>
+                    </div>
+                    <div class="card-content">
+                        <ul class="role-features">
+                            <li><i class="fas fa-scroll"></i> Создавай захватывающие сценарии</li>
+                            <li><i class="fas fa-dragon"></i> Управляй монстрами и НИП</li>
+                            <li><i class="fas fa-map"></i> Строй уникальные подземелья</li>
+                            <li><i class="fas fa-crown"></i> Направляй историю мира</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <span class="role-stats">
+                            <i class="fas fa-eye"></i> Всевидящий
+                            <i class="fas fa-brain"></i> Твой мир - твои правила
+                        </span>
+                    </div>
+                    <div class="selection-overlay" v-if="selectedRole === 'master'">
+                        <i class="fas fa-check-circle"></i>
+                        Выбрано
+                    </div>
+                </div>
+            </div>
+
+            <!-- Кнопка подтверждения -->
+            <div class="action-section" v-if="selectedRole">
+                <button class="confirm-btn" @click="confirmRole">
+                    <i class="fas fa-dice-d20"></i>
+                    Подтвердить Выбор - {{ selectedRoleText }}
+                </button>
+            </div>
+
+            <!-- Статистика -->
+            <div class="stats-section">
+                <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <div class="stat-info">
+                        <span class="stat-number">{{ stats.activePlayers }}</span>
+                        <span class="stat-label">Активных игроков</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-dungeon"></i>
+                    <div class="stat-info">
+                        <span class="stat-number">{{ stats.dungeons }}</span>
+                        <span class="stat-label">Подземелий</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-crown"></i>
+                    <div class="stat-info">
+                        <span class="stat-number">{{ stats.masters }}</span>
+                        <span class="stat-label">Мастеров</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Уведомления -->
+        <div class="message" :class="{ 'success': message.success, 'error': !message.success }" v-if="message.text">
+            {{ message.text }}
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    userName: 'Путник',
+                    selectedRole: null,
+                    showUserMenu: false,
+                    message: {
+                        text: '',
+                        success: false
+                    },
+                    stats: {
+                        activePlayers: 127,
+                        dungeons: 42,
+                        masters: 15
+                    }
+                };
+            },
+            computed: {
+                selectedRoleText() {
+                    if (this.selectedRole === 'player') {
+                        return 'Игрок';
+                    } else if (this.selectedRole === 'master') {
+                        return 'Мастер';
+                    }
+                    return '';
+                }
+            },
+            methods: {
+                // Получение данных пользователя из localStorage
+                getUserData() {
+                    try {
+                        const userData = localStorage.getItem('current_user');
+                        if (userData) {
+                            const user = JSON.parse(userData);
+                            this.userName = user.username || 'Путник';
+                            console.log('👤 Загружен пользователь:', user);
+                        } else {
+                            console.log('❌ Пользователь не найден в localStorage');
+                            // Если пользователя нет, перенаправляем на вход
+                            setTimeout(() => {
+                                window.location.href = 'login.html';
+                            }, 2000);
+                        }
+                    } catch (error) {
+                        console.error('❌ Ошибка загрузки пользователя:', error);
+                    }
+                },
+
+                selectRole(role) {
+                    this.selectedRole = role;
+                    console.log(`🎯 Выбрана роль: ${role}`);
+                },
+
+                confirmRole() {
+                    if (this.selectedRole) {
+                        // Сохраняем выбранную роль в localStorage
+                        try {
+                            const userData = localStorage.getItem('current_user');
+                            if (userData) {
+                                const user = JSON.parse(userData);
+                                user.role = this.selectedRole;
+                                user.roleSelectedAt = new Date().toISOString();
+                                localStorage.setItem('current_user', JSON.stringify(user));
+
+                                this.showMessage(`Роль "${this.selectedRoleText}" успешно подтверждена!`, true);
+
+                                // Обновляем статистику
+                                this.updateStats();
+
+                                // Перенаправление на следующую страницу через 2 секунды
+                                setTimeout(() => {
+                                    if (this.selectedRole === 'player') {
+                                        window.location.href = 'character-creation.html';
+                                    } else {
+                                        window.location.href = 'campaign-creation.html';
+                                    }
+                                }, 2000);
+                            }
+                        } catch (error) {
+                            console.error('❌ Ошибка сохранения роли:', error);
+                            this.showMessage('Ошибка сохранения роли', false);
+                        }
+                    } else {
+                        this.showMessage('Пожалуйста, выберите роль', false);
+                    }
+                },
+
+                updateStats() {
+                    // Обновляем статистику в зависимости от выбранной роли
+                    if (this.selectedRole === 'player') {
+                        this.stats.activePlayers++;
+                    } else if (this.selectedRole === 'master') {
+                        this.stats.masters++;
+                    }
+                },
+
+                toggleUserMenu() {
+                    this.showUserMenu = !this.showUserMenu;
+                },
+
+                logout() {
+                    // Очищаем данные пользователя
+                    localStorage.removeItem('current_user');
+                    localStorage.removeItem('auth_token');
+                    this.showMessage('Вы вышли из системы', true);
+
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
+                },
+
+                showMessage(text, success) {
+                    this.message.text = text;
+                    this.message.success = success;
+
+                    setTimeout(() => {
+                        this.message.text = '';
+                    }, 4000);
+                }
+            },
+
+            mounted() {
+                // Загружаем данные пользователя при загрузке страницы
+                this.getUserData();
+
+                // Проверяем, не выбрана ли уже роль
+                try {
+                    const userData = localStorage.getItem('current_user');
+                    if (userData) {
+                        const user = JSON.parse(userData);
+                        if (user.role) {
+                            this.selectedRole = user.role;
+                            this.showMessage(`Ваша текущая роль: ${user.role === 'player' ? 'Игрок' : 'Мастер'}`, true);
+                        }
+                    }
+                } catch (error) {
+                    console.error('❌ Ошибка проверки роли:', error);
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

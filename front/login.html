@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lore - Вход в Хроники</title>
+    <link rel="stylesheet" href="style-login.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Стили для дополнительных кнопок */
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(90, 60, 26, 0.6);
+            color: #b89a6a;
+            border: 1px solid #5a3c1a;
+            border-radius: 4px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(139, 105, 20, 0.3);
+            color: #e0d0b8;
+            border-color: #d4af37;
+        }
+
+        .nav-btn.primary {
+            background: rgba(139, 105, 20, 0.3);
+            color: #d4af37;
+            border-color: #8b6914;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="left-panel">
+                <div class="logo">
+                    <h1>LORE</h1>
+                    <p>Хроники Эландрии</p>
+                </div>
+                <div class="ancient-gate">
+                    <i class="fas fa-door-open"></i>
+                </div>
+                <div class="lore-text">
+                    <h3>Возвращение Мудреца</h3>
+                    <p>С возвращением, хранитель тайных знаний! Фиолетовые врата открываются только для посвящённых магов Эландрии.</p>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="login-form">
+                    <h2 class="form-title">Врата Мудрости</h2>
+
+                    <form @submit.prevent="submitForm">
+                        <div class="form-group">
+                            <label for="email">Магический Адрес:</label>
+                            <input
+                                type="email"
+                                id="email"
+                                class="form-control"
+                                v-model="form.email"
+                                required
+                                :class="{ 'error': errors.email }"
+                                @blur="validateEmail"
+                                placeholder="Введите ваш email"
+                            >
+                            <span class="error-message" v-if="errors.email">{{ errors.email }}</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Защитная Руна:</label>
+                            <input
+                                type="password"
+                                id="password"
+                                class="form-control"
+                                v-model="form.password"
+                                required
+                                :class="{ 'error': errors.password }"
+                                @blur="validatePassword"
+                                placeholder="Введите вашу руну"
+                            >
+                            <span class="error-message" v-if="errors.password">{{ errors.password }}</span>
+                        </div>
+
+                        <div class="form-options">
+                            <label class="remember-me">
+                                <input type="checkbox" v-model="form.remember">
+                                <span class="checkmark"></span>
+                                Запомнить мой дух
+                            </label>
+                            <a href="#" class="forgot-password">Забыли руну?</a>
+                        </div>
+
+                        <button type="submit" :disabled="loading" class="submit-btn">
+                            <span v-if="loading" class="loading"></span>
+                            <span v-if="loading">Открытие Врат...</span>
+                            <span v-else>Войти в Архивы</span>
+                        </button>
+
+                        <!-- Кнопки быстрой навигации -->
+                        <div class="nav-buttons">
+                            <button class="nav-btn primary" @click="goToDashboard">
+                                <i class="fas fa-home"></i>
+                                В Дашборд
+                            </button>
+                            <button class="nav-btn" @click="goToRegister">
+                                <i class="fas fa-user-plus"></i>
+                                Регистрация
+                            </button>
+                        </div>
+
+                        <div class="register-link">
+                            <p>Ещё не присягнули Гильдии? <a href="index.html">Принесите клятву</a></p>
+                        </div>
+                    </form>
+
+                    <div class="message" :class="{ 'success': message.success, 'error': !message.success }" v-if="message.text">
+                        {{ message.text }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    form: {
+                        email: '',
+                        password: '',
+                        remember: false
+                    },
+                    errors: {
+                        email: '',
+                        password: ''
+                    },
+                    loading: false,
+                    message: {
+                        text: '',
+                        success: false
+                    }
+                };
+            },
+            methods: {
+                validateEmail() {
+                    if (!this.form.email.trim()) {
+                        this.errors.email = 'Магический адрес обязателен для заполнения';
+                        return false;
+                    }
+
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(this.form.email)) {
+                        this.errors.email = 'Введите корректный магический адрес';
+                        return false;
+                    }
+
+                    this.errors.email = '';
+                    return true;
+                },
+
+                validatePassword() {
+                    if (!this.form.password.trim()) {
+                        this.errors.password = 'Защитная руна обязательна для входа';
+                        return false;
+                    }
+
+                    if (this.form.password.length < 6) {
+                        this.errors.password = 'Руна должна содержать минимум 6 символов';
+                        return false;
+                    }
+
+                    this.errors.password = '';
+                    return true;
+                },
+
+                validateForm() {
+                    const isEmailValid = this.validateEmail();
+                    const isPasswordValid = this.validatePassword();
+
+                    return isEmailValid && isPasswordValid;
+                },
+
+                getUsers() {
+                    try {
+                        const users = JSON.parse(localStorage.getItem('dnd_users') || '[]');
+                        console.log('👥 Получены пользователи для входа:', users);
+                        return users;
+                    } catch (error) {
+                        console.error('❌ Ошибка получения пользователей:', error);
+                        return [];
+                    }
+                },
+
+                async submitForm() {
+                    if (!this.validateForm()) {
+                        this.showMessage('Пожалуйста, исправьте ошибки в форме', false);
+                        return;
+                    }
+
+                    this.loading = true;
+                    this.message.text = '';
+
+                    try {
+                        // Аутентификация по данным из localStorage
+                        const response = await this.authenticateUser();
+
+                        if (response.success) {
+                            // Сохраняем данные пользователя
+                            localStorage.setItem('current_user', JSON.stringify(response.user));
+                            if (this.form.remember) {
+                                localStorage.setItem('auth_token', response.token);
+                            }
+
+                            this.showMessage('Врата мудрости открыты! Добро пожаловать в архивы.', true);
+
+                            // Автоматический переход на дашборд через 2 секунды
+                            setTimeout(() => {
+                                window.location.href = 'dashboard.html';
+                            }, 2000);
+                        } else {
+                            this.showMessage(response.message || 'Неверные данные для входа', false);
+                        }
+                    } catch (error) {
+                        console.error('Ошибка:', error);
+                        this.showMessage('Произошла ошибка при входе в систему', false);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async authenticateUser() {
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            const users = this.getUsers();
+                            const user = users.find(u =>
+                                u.email === this.form.email.toLowerCase() &&
+                                u.password === this.form.password
+                            );
+
+                            if (user) {
+                                console.log('✅ Пользователь найден:', user);
+                                resolve({
+                                    success: true,
+                                    message: 'Аутентификация успешна',
+                                    user: user,
+                                    token: 'dnd_auth_token_' + Date.now()
+                                });
+                            } else {
+                                console.log('❌ Пользователь не найден');
+                                resolve({
+                                    success: false,
+                                    message: 'Неверный магический адрес или защитная руна'
+                                });
+                            }
+                        }, 1500);
+                    });
+                },
+
+                // Переход на дашборд
+                goToDashboard() {
+                    window.location.href = 'dashboard.html';
+                },
+
+                // Переход на регистрацию
+                goToRegister() {
+                    window.location.href = 'reg.html';
+                },
+
+                showMessage(text, success) {
+                    this.message.text = text;
+                    this.message.success = success;
+
+                    setTimeout(() => {
+                        this.message.text = '';
+                    }, 4000);
+                }
+            },
+
+            mounted() {
+                // Если уже авторизован - перенаправляем на дашборд
+                const currentUser = localStorage.getItem('current_user');
+                if (currentUser) {
+                    console.log('👤 Текущий пользователь:', JSON.parse(currentUser));
+                    // Можно сразу перенаправить или показать сообщение
+                    // setTimeout(() => {
+                    //     this.goToDashboard();
+                    // }, 1000);
+                }
+
+                // Показываем тестовые данные для отладки
+                const users = this.getUsers();
+                if (users.length > 0) {
+                    console.log('📋 Доступные пользователи для входа:');
+                    users.forEach(user => {
+                        console.log(`   👤 ${user.username} - ${user.email} (пароль: ${user.password})`);
+                    });
+                } else {
+                    console.log('ℹ️ Нет зарегистрированных пользователей');
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

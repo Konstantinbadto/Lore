@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lore - Хроники Эландрии</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cinzel', serif;
+            background: #0a0a14 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%230a0a14"/><path d="M0 0L100 100M100 0L0 100" stroke="%231a1a2e" stroke-width="1"/></svg>');
+            color: #e0d0b8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(74, 34, 9, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(9, 34, 74, 0.2) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .container {
+            display: flex;
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(20, 15, 10, 0.85);
+            border: 2px solid #8b6914;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(139, 105, 20, 0.4);
+            overflow: hidden;
+            position: relative;
+            min-height: 600px;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M0,0 L100,0 L100,100 L0,100 Z" fill="none" stroke="%238b6914" stroke-width="0.5"/></svg>');
+            pointer-events: none;
+        }
+
+        .left-panel {
+            flex: 1;
+            background:
+                linear-gradient(rgba(10, 8, 5, 0.8), rgba(10, 8, 5, 0.8)),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><path d="M20,20 L180,20 L180,180 L20,180 Z" fill="none" stroke="%235a3c1a" stroke-width="2"/><path d="M40,40 L160,40 L160,160 L40,160 Z" fill="none" stroke="%235a3c1a" stroke-width="1"/><circle cx="100" cy="100" r="30" fill="none" stroke="%235a3c1a" stroke-width="1"/></svg>');
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(139, 105, 20, 0.1) 0%, transparent 70%);
+            animation: rotate 60s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .logo {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 3.5rem;
+            color: #d4af37;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            font-size: 1.2rem;
+            color: #b89a6a;
+            font-style: italic;
+        }
+
+        .dragon {
+            font-size: 5rem;
+            color: #d4af37;
+            margin: 20px 0;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+            animation: pulse 3s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        .lore-text {
+            position: relative;
+            z-index: 1;
+            max-width: 400px;
+            background: rgba(30, 25, 20, 0.7);
+            padding: 20px;
+            border: 1px solid #5a3c1a;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            margin-top: 20px;
+        }
+
+        .lore-text h3 {
+            color: #d4af37;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .lore-text p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .right-panel {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: rgba(15, 12, 8, 0.9);
+            border-left: 1px solid #5a3c1a;
+        }
+
+        .registration-form {
+            max-width: 400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .form-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #d4af37;
+            font-size: 1.8rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b89a6a;
+            font-size: 1rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(40, 35, 30, 0.8);
+            border: 1px solid #5a3c1a;
+            border-radius: 4px;
+            color: #e0d0b8;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #d4af37;
+            box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+        }
+
+        .form-control.error {
+            border-color: #a52a2a;
+            box-shadow: 0 0 8px rgba(165, 42, 42, 0.5);
+        }
+
+        .error-message {
+            color: #a52a2a;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(to bottom, #8b6914, #5a3c1a);
+            color: #f5e8c8;
+            border: none;
+            border-radius: 4px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(to bottom, #9a7914, #6a4c2a);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:active {
+            transform: translateY(1px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .submit-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+
+        .submit-btn:hover::after {
+            opacity: 1;
+            transform: rotate(45deg) translate(10%, 10%);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: rgba(90, 60, 26, 0.6);
+            color: #b89a6a;
+            border: 1px solid #5a3c1a;
+            border-radius: 4px;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .login-btn:hover {
+            background: rgba(139, 105, 20, 0.3);
+            color: #e0d0b8;
+            border-color: #d4af37;
+        }
+
+        .export-btn {
+            width: 100%;
+            padding: 10px;
+            background: rgba(60, 90, 26, 0.6);
+            color: #b8c46a;
+            border: 1px solid #5a7c1a;
+            border-radius: 4px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: rgba(105, 139, 20, 0.3);
+            color: #e0e8b8;
+            border-color: #afd437;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 500;
+            border: 1px solid;
+        }
+
+        .message.success {
+            background-color: rgba(40, 80, 40, 0.3);
+            color: #90ee90;
+            border-color: #2e8b57;
+        }
+
+        .message.error {
+            background-color: rgba(80, 40, 40, 0.3);
+            color: #f08080;
+            border-color: #a52a2a;
+        }
+
+        .confirmation-message {
+            background: rgba(30, 25, 20, 0.9);
+            padding: 25px;
+            border: 1px solid #5a3c1a;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .confirmation-message h3 {
+            color: #d4af37;
+            margin-bottom: 15px;
+        }
+
+        .confirmation-message p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(212, 175, 55, 0.3);
+            border-radius: 50%;
+            border-top-color: #d4af37;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .right-panel {
+                border-left: none;
+                border-top: 1px solid #5a3c1a;
+            }
+
+            .logo h1 {
+                font-size: 2.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            .left-panel, .right-panel {
+                padding: 25px 20px;
+            }
+
+            .logo h1 {
+                font-size: 2.2rem;
+            }
+
+            .dragon {
+                font-size: 4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="left-panel">
+                <div class="logo">
+                    <h1>LORE</h1>
+                    <p>Хроники Эландрии</p>
+                </div>
+                <div class="dragon">
+                    <i class="fas fa-dragon"></i>
+                </div>
+                <div class="lore-text">
+                    <h3>Великие Хроники</h3>
+                    <p>Присоединяйтесь к величайшим летописцам Эландрии. Запечатлейте свои приключения в анналах истории и делитесь мудростью с будущими поколениями.</p>
+                    <p>Каждый зарегистрированный сказитель получит древний том знаний и доступ к тайным архивам королевства.</p>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="registration-form">
+                    <h2 class="form-title">Вступление в Гильдию</h2>
+
+                    <form @submit.prevent="submitForm">
+                        <div class="form-group">
+                            <label for="name">Имя Летописца:</label>
+                            <input
+                                type="text"
+                                id="name"
+                                class="form-control"
+                                v-model="form.name"
+                                required
+                                :class="{ 'error': errors.name }"
+                                @blur="validateName"
+                                placeholder="Введите ваше имя"
+                            >
+                            <span class="error-message" v-if="errors.name">{{ errors.name }}</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Магический Адрес:</label>
+                            <input
+                                type="email"
+                                id="email"
+                                class="form-control"
+                                v-model="form.email"
+                                required
+                                :class="{ 'error': errors.email }"
+                                @blur="validateEmail"
+                                placeholder="Введите ваш email"
+                            >
+                            <span class="error-message" v-if="errors.email">{{ errors.email }}</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Магический Шифр:</label>
+                            <input
+                                type="password"
+                                id="password"
+                                class="form-control"
+                                v-model="form.password"
+                                required
+                                :class="{ 'error': errors.password }"
+                                @blur="validatePassword"
+                                placeholder="Придумайте надежный пароль"
+                                minlength="6"
+                            >
+                            <span class="error-message" v-if="errors.password">{{ errors.password }}</span>
+                        </div>
+
+                        <button type="submit" :disabled="loading" class="submit-btn">
+                            <span v-if="loading" class="loading"></span>
+                            <span v-if="loading">Запись в Томе...</span>
+                            <span v-else>Присоединиться к Гильдии</span>
+                        </button>
+                    </form>
+
+                    <button class="login-btn" @click="goToLogin">
+                        <i class="fas fa-door-open"></i>
+                        Уже присягнули? Войдите в архив
+                    </button>
+
+                    <button class="export-btn" @click="exportData">
+                        <i class="fas fa-download"></i>
+                        Скачать данные (data.json)
+                    </button>
+
+                    <div class="message" :class="{ 'success': message.success, 'error': !message.success }" v-if="message.text">
+                        {{ message.text }}
+                    </div>
+
+                    <div class="confirmation-message" v-if="confirmationSent">
+                        <h3>Регистрация Успешна!</h3>
+                        <p>Добро пожаловать в Гильдию Летописцев, {{ form.name }}! Ваши данные сохранены.</p>
+                        <p><strong>Всего пользователей:</strong> {{ getUserCount() }}</p>
+                        <p><i>Да пребудет с вами мудрость древних!</i></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    form: {
+                        name: '',
+                        email: '',
+                        password: ''
+                    },
+                    errors: {
+                        name: '',
+                        email: '',
+                        password: ''
+                    },
+                    loading: false,
+                    message: {
+                        text: '',
+                        success: false
+                    },
+                    confirmationSent: false
+                };
+            },
+            mounted() {
+                console.log('📊 Текущие пользователи в localStorage:', this.getUsers());
+            },
+            methods: {
+                validateName() {
+                    if (!this.form.name.trim()) {
+                        this.errors.name = 'Имя летописца обязательно для заполнения';
+                        return false;
+                    }
+
+                    if (this.form.name.length < 2) {
+                        this.errors.name = 'Имя должно содержать минимум 2 символа';
+                        return false;
+                    }
+
+                    this.errors.name = '';
+                    return true;
+                },
+
+                validateEmail() {
+                    if (!this.form.email.trim()) {
+                        this.errors.email = 'Магический адрес обязателен для заполнения';
+                        return false;
+                    }
+
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(this.form.email)) {
+                        this.errors.email = 'Введите корректный магический адрес';
+                        return false;
+                    }
+
+                    // Проверяем, нет ли уже пользователя с таким email
+                    const users = this.getUsers();
+                    if (users.find(user => user.email === this.form.email)) {
+                        this.errors.email = 'Этот магический адрес уже используется';
+                        return false;
+                    }
+
+                    this.errors.email = '';
+                    return true;
+                },
+
+                validatePassword() {
+                    if (!this.form.password) {
+                        this.errors.password = 'Магический шифр обязателен';
+                        return false;
+                    }
+
+                    if (this.form.password.length < 6) {
+                        this.errors.password = 'Шифр должен содержать минимум 6 символов';
+                        return false;
+                    }
+
+                    this.errors.password = '';
+                    return true;
+                },
+
+                validateForm() {
+                    const isNameValid = this.validateName();
+                    const isEmailValid = this.validateEmail();
+                    const isPasswordValid = this.validatePassword();
+
+                    return isNameValid && isEmailValid && isPasswordValid;
+                },
+
+                getUsers() {
+                    try {
+                        const users = JSON.parse(localStorage.getItem('dnd_users') || '[]');
+                        console.log('👥 Получены пользователи:', users);
+                        return users;
+                    } catch (error) {
+                        console.error('❌ Ошибка получения пользователей:', error);
+                        return [];
+                    }
+                },
+
+                saveUser(user) {
+                    try {
+                        const users = this.getUsers();
+                        users.push(user);
+                        localStorage.setItem('dnd_users', JSON.stringify(users));
+                        console.log('💾 Пользователь сохранен:', user);
+                        console.log('📊 Все пользователи после сохранения:', users);
+                    } catch (error) {
+                        console.error('❌ Ошибка сохранения пользователя:', error);
+                    }
+                },
+
+                getUserCount() {
+                    return this.getUsers().length;
+                },
+
+                async submitForm() {
+                    if (!this.validateForm()) {
+                        this.showMessage('Пожалуйста, исправьте ошибки в форме', false);
+                        return;
+                    }
+
+                    this.loading = true;
+                    this.message.text = '';
+
+                    try {
+                        // Сохраняем пользователя в localStorage
+                        const user = {
+                            id: Date.now(),
+                            username: this.form.name.trim(),
+                            email: this.form.email.trim().toLowerCase(),
+                            password: this.form.password,
+                            role: 'player',
+                            created_at: new Date().toISOString(),
+                            last_login: null
+                        };
+
+                        this.saveUser(user);
+
+                        // Сохраняем данные для дашборда
+                        localStorage.setItem('current_user', JSON.stringify(user));
+
+                        this.showMessage('Регистрация успешно завершена! Перенаправление...', true);
+                        this.confirmationSent = true;
+                        this.resetForm();
+
+                        // Автоматический переход на dashboard через 2 секунды
+                        setTimeout(() => {
+                            window.location.href = 'dashboard.html';
+                        }, 2000);
+
+                    } catch (error) {
+                        console.error('Ошибка:', error);
+                        this.showMessage('Произошла ошибка при сохранении данных', false);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                exportData() {
+                    try {
+                        const users = this.getUsers();
+                        const data = {
+                            users: users,
+                            export_date: new Date().toISOString(),
+                            total_users: users.length
+                        };
+
+                        const dataStr = JSON.stringify(data, null, 2);
+                        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(dataBlob);
+                        link.download = 'dnd_users_data.json';
+                        link.click();
+
+                        this.showMessage('Данные успешно экспортированы в файл!', true);
+                    } catch (error) {
+                        console.error('Ошибка экспорта:', error);
+                        this.showMessage('Ошибка при экспорте данных', false);
+                    }
+                },
+
+                goToLogin() {
+                    // Переход на страницу входа
+                    window.location.href = 'login.html';
+                },
+
+                showMessage(text, success) {
+                    this.message.text = text;
+                    this.message.success = success;
+
+                    if (success) {
+                        setTimeout(() => {
+                            this.message.text = '';
+                        }, 5000);
+                    }
+                },
+
+                resetForm() {
+                    this.form.name = '';
+                    this.form.email = '';
+                    this.form.password = '';
+                    this.errors.name = '';
+                    this.errors.email = '';
+                    this.errors.password = '';
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
