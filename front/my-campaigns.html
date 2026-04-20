@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои кампании - LORE</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Cinzel', serif;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(106, 27, 154, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(74, 20, 140, 0.3) 0%, transparent 50%),
+                #0a0a14;
+            color: #e0d0b8;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(20, 15, 10, 0.9);
+            border-bottom: 2px solid #6a1b9a;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .logo h1 {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 2.5rem;
+            color: #9c27b0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #ba68c8;
+            margin-left: 10px;
+            font-style: italic;
+        }
+
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            color: #9c27b0;
+            font-size: 2.2rem;
+        }
+
+        .campaigns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 25px;
+        }
+
+        .campaign-card {
+            background: rgba(30, 25, 20, 0.85);
+            border: 2px solid #4a148c;
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .campaign-card:hover {
+            border-color: #9c27b0;
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(156, 39, 176, 0.3);
+        }
+
+        .campaign-card h3 {
+            color: #e0d0b8;
+            margin-bottom: 12px;
+            font-size: 1.6rem;
+        }
+
+        .setting {
+            color: #ba68c8;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        .campaign-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            color: #ba68c8;
+        }
+
+        .status {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .status.recruiting {
+            background: rgba(76,175,80,0.2);
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+        }
+
+        .created-date {
+            color: #777;
+            font-size: 0.9rem;
+            text-align: right;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6a1b9a, #9c27b0);
+            color: white;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(156,39,176,0.4);
+        }
+
+        .empty-state, .loading {
+            text-align: center;
+            padding: 80px 20px;
+            color: #ba68c8;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>LORE</h1>
+                    <span class="subtitle">Мои кампании</span>
+                </div>
+                <div>
+                    <span style="margin-right: 20px; color: #e0d0b8;">Мастер: {{ masterName }}</span>
+                    <button @click="logout" class="btn-primary">Выйти</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1>Мои кампании</h1>
+                <button @click="createNew" class="btn-primary">
+                    <i class="fas fa-plus"></i> Создать новую
+                </button>
+            </div>
+
+            <div v-if="loading" class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Загрузка кампаний...
+            </div>
+
+            <div v-else-if="myCampaigns.length === 0" class="empty-state">
+                <h2>У вас пока нет кампаний</h2>
+                <p>Создайте первую кампанию, чтобы начать приключение.</p>
+                <button @click="createNew" class="btn-primary" style="margin-top: 30px;">
+                    Создать первую кампанию
+                </button>
+            </div>
+
+            <div v-else class="campaigns-grid">
+                <div v-for="camp in myCampaigns"
+                     :key="camp.id"
+                     class="campaign-card"
+                     @click="openCampaign(camp.id)">
+
+                    <h3>{{ camp.name }}</h3>
+                    <p class="setting">{{ camp.setting || 'Сеттинг не указан' }}</p>
+
+                    <div class="campaign-meta">
+                        <span>Уровень: {{ camp.starting_level || 1 }}</span>
+                        <span>Игроков: {{ camp.max_players || 4 }}</span>
+                        <span class="status" :class="camp.status || 'recruiting'">
+                            {{ camp.status === 'recruiting' ? 'Набор игроков' : (camp.status || 'Активна') }}
+                        </span>
+                    </div>
+
+                    <div class="created-date">
+                        Создано: {{ formatDate(camp.created_at) }}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+    const API_BASE = 'http://localhost:3307';   // ← Измени порт, если нужно
+
+    const { createApp } = Vue;
+
+    createApp({
+        data() {
+            return {
+                masterName: 'Мастер',
+                loading: true,
+                myCampaigns: []
+            };
+        },
+        methods: {
+            async getUserData() {
+                const token = localStorage.getItem('auth_token');
+                if (!token) return window.location.href = 'login.html';
+
+                try {
+                    const res = await fetch(`${API_BASE}/api/auth/me`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.masterName = data.user?.username || 'Мастер';
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            },
+
+            async loadMyCampaigns() {
+                const token = localStorage.getItem('auth_token');
+                if (!token) return;
+
+                try {
+                    const res = await fetch(`${API_BASE}/api/campaigns/my`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.myCampaigns = data.campaigns || [];
+                    }
+                } catch (e) {
+                    console.error(e);
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            // ←←← ИЗМЕНЕНО: теперь перекидывает на game-hub.html
+            openCampaign(campaignId) {
+    if (!campaignId) {
+        console.error("Ошибка: campaignId не передан");
+        alert("Не удалось открыть кампанию — ID отсутствует");
+        return;
+    }
+
+    // Правильно передаём id через query-параметр (а не через #)
+    window.location.href = `game-hub.html?id=${campaignId}`;
+},
+
+            createNew() {
+                window.location.href = 'campaign.html';   // создание новой кампании
+            },
+
+            formatDate(dateStr) {
+                if (!dateStr) return '—';
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('ru-RU', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+            },
+
+            logout() {
+                localStorage.removeItem('auth_token');
+                window.location.href = 'login.html';
+            }
+        },
+
+        mounted() {
+            this.getUserData();
+            this.loadMyCampaigns();
+        }
+    }).mount('#app');
+    </script>
+</body>
+</html>

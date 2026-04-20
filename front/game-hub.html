@@ -3,1512 +3,471 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lore - Игровой Хаб</title>
-    <link rel="stylesheet" href="style-hub.css">
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Lore | Боевой Хаб</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=MedievalSharp&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <style>
-        /* Стили для различных сеттингов */
-        .map-forgotten-realms {
-            background: linear-gradient(135deg, #2d5016, #5a3921);
-            border: 3px solid #8b4513;
+        body {
+            margin: 0;
+            font-family: 'Cinzel', serif;
+            background: #0a0a14;
+            color: #e0d0b8;
+            min-height: 100vh;
         }
-
-        .map-eberron {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            border: 3px solid #4cc9f0;
-        }
-
-        .map-ravenloft {
-            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
-            border: 3px solid #8b0000;
-        }
-
-        .map-dark-sun {
-            background: linear-gradient(135deg, #d2691e, #8b4513);
-            border: 3px solid #a52a2a;
-        }
-
-        .map-planescape {
-            background: linear-gradient(135deg, #4b0082, #000080);
-            border: 3px solid #9370db;
-        }
-
-        .map-spelljammer {
-            background: linear-gradient(135deg, #000033, #000066);
-            border: 3px solid #00ffff;
-        }
-
-        .map-custom {
-            background: linear-gradient(135deg, #2d5016, #5a3921);
-            border: 3px solid #8b4513;
-        }
-
-        .map-cell {
-            width: 40px;
-            height: 40px;
-            border: 1px solid rgba(255,255,255,0.1);
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        .map-cell:hover {
-            transform: scale(1.1);
-            z-index: 10;
-            box-shadow: 0 0 10px gold;
-        }
-
-        .cell-terrain {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-
-        .terrain-forest { color: #228b22; }
-        .terrain-mountain { color: #8b4513; }
-        .terrain-water { color: #1e90ff; }
-        .terrain-desert { color: #f4a460; }
-        .terrain-city { color: #ffd700; }
-        .terrain-dungeon { color: #8b0000; }
-        .terrain-plains { color: #90ee90; }
-        .terrain-swamp { color: #2f4f4f; }
-        .terrain-void { color: #4b0082; }
-        .terrain-space { color: #00ffff; }
-
-        .map-token {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
-            50% { transform: translate(-50%, -50%) translateY(-5px); }
-        }
-
-        .token-player { color: #ff6b6b; }
-        .token-enemy { color: #dc143c; }
-        .token-npc { color: #87ceeb; }
-        .token-location { color: #ffd700; }
-        .token-treasure { color: #ffa500; }
-
-        .map-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-            padding: 10px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 5px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 12px;
-        }
-
-        .legend-color {
-            width: 15px;
-            height: 15px;
-            border-radius: 3px;
-        }
-
-        /* Стили для модальных окон */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-        }
-
-        .modal-content {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            border-radius: 15px;
-            padding: 30px;
-            max-width: 90%;
-            max-height: 90%;
-            overflow-y: auto;
-            border: 2px solid #ffd700;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .modal-header {
+        .header {
+            background: #1a1208;
+            border-bottom: 4px solid #d4af37;
+            padding: 15px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #ffd700;
         }
-
-        .modal-header h2 {
-            color: #ffd700;
+        .left-header h1 {
+            font-family: 'MedievalSharp', cursive;
+            color: #d4af37;
+            font-size: 2.6rem;
             margin: 0;
         }
-
-        .close-modal {
-            background: none;
-            border: none;
-            color: #ff6b6b;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 5px;
-        }
-
-        .close-modal:hover {
-            color: #ff0000;
-        }
-
-        /* Стили для кубиков */
-        .dice-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .dice-btn {
-            padding: 20px;
-            border: none;
-            border-radius: 10px;
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .dice-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-        }
-
-        .dice-result {
-            text-align: center;
-            font-size: 3em;
-            margin: 20px 0;
-            color: #ffd700;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .dice-animation {
-            animation: rollDice 1s ease-out;
-        }
-
-        @keyframes rollDice {
-            0% { transform: scale(0.5) rotate(0deg); opacity: 0; }
-            50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
-            100% { transform: scale(1) rotate(360deg); opacity: 1; }
-        }
-
-        /* Стили для голосового чата */
-        .voice-chat-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin: 20px 0;
-        }
-
-        .video-container {
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            padding: 15px;
-        }
-
-        .video-wrapper {
-            margin-bottom: 15px;
-        }
-
-        .video-wrapper h4 {
-            color: #ffd700;
-            margin-bottom: 10px;
-        }
-
-        video {
-            width: 100%;
-            max-width: 300px;
-            border-radius: 8px;
-            background: #000;
-            border: 2px solid #ffd700;
-        }
-
-        .voice-controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .control-btn {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 8px;
-            background: linear-gradient(45deg, #00b894, #00a085);
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .control-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .control-btn.danger {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-        }
-
-        .control-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .participants-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .participant {
+        .right-header {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px;
-            margin-bottom: 8px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 8px;
+            gap: 25px;
         }
-
-        .status-indicator {
-            width: 10px;
-            height: 10px;
+        .master-name {
+            font-size: 1.35rem;
+            color: #d4af37;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .main-content {
+            display: grid;
+            grid-template-columns: 280px 1fr 280px;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            height: calc(100vh - 100px);
+        }
+        .panel {
+            background: #1f1810;
+            border: 2px solid #8b6914;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .map-container {
+            background: #000;
+            border: 4px solid #d4af37;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .map-header {
+            background: #2a2118;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.5rem;
+            color: #d4af37;
+        }
+        .canvas-wrapper {
+            flex: 1;
+            position: relative;
+            background: #05050f;
+        }
+        canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+        .draw-tools {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(26,18,8,0.95);
+            border: 3px solid #d4af37;
+            border-radius: 50px;
+            padding: 12px 20px;
+            display: flex;
+            gap: 12px;
+            z-index: 30;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .tool-btn {
+            width: 55px; height: 55px;
+            border: none;
             border-radius: 50%;
-            background: #00b894;
+            background: #3a2c20;
+            color: #e0d0b8;
+            font-size: 1.7em;
+            cursor: pointer;
         }
-
-        .status-indicator.muted {
-            background: #ff6b6b;
+        .tool-btn:hover, .tool-btn.active {
+            background: #d4af37;
+            color: #0a0a14;
+            transform: scale(1.1);
         }
-
-        /* Адаптивность */
-        @media (max-width: 768px) {
-            .voice-chat-container {
-                grid-template-columns: 1fr;
-            }
-
-            .dice-container {
-                grid-template-columns: repeat(3, 1fr);
-            }
+        .dice-modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .dice-content {
+            background: #1a1208;
+            border: 4px solid #d4af37;
+            border-radius: 16px;
+            padding: 30px;
+            width: 520px;
+            text-align: center;
+        }
+        .dice-result {
+            font-size: 4.5rem;
+            font-weight: bold;
+            color: #d4af37;
+            margin: 20px 0;
+            min-height: 80px;
+        }
+        .dice-history {
+            max-height: 300px;
+            overflow-y: auto;
+            text-align: left;
+            margin-top: 20px;
+        }
+        .error-box {
+            background: #3a1f1f;
+            border: 3px solid #d44;
+            color: #ffcccc;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 600px;
+            margin: 80px auto;
         }
     </style>
 </head>
 <body>
-    <div id="app">
-        <!-- Хедер -->
-        <header class="header">
-            <div class="header-content">
-                <div class="campaign-info">
-                    <h1 class="campaign-title">{{ campaignName }}</h1>
-                    <span class="campaign-master">Мастер: {{ gameMaster }}</span>
-                    <span class="campaign-setting">Сеттинг: {{ campaignSetting }}</span>
-                </div>
-                <div class="header-controls">
-                    <div class="dice-roller">
-                        <button class="dice-btn" @click="openDiceModal">
-                            <i class="fas fa-dice-d20"></i>
-                            Кубики
-                        </button>
-                        <div class="dice-result" v-if="lastRoll">
-                            {{ lastRoll }}
-                        </div>
-                        <button class="voice-chat-btn" @click="openVoiceChat">
-                            <i class="fas fa-headset"></i>
-                            Голосовой чат
-                        </button>
-                    </div>
-                    <div class="user-menu">
-                        <div class="user-avatar" @click="toggleUserMenu">
-                            <i class="fas fa-helmet-battle"></i>
-                            <span class="user-name">{{ userName }}</span>
-                            <i class="fas fa-caret-down"></i>
-                        </div>
-                        <div class="dropdown-menu" v-if="showUserMenu">
-                            <a href="dashboard.html" class="dropdown-item">
-                                <i class="fas fa-home"></i>
-                                Главная
-                            </a>
-                            <a href="#" class="dropdown-item">
-                                <i class="fas fa-user"></i>
-                                Мой персонаж
-                            </a>
-                            <a href="#" class="dropdown-item">
-                                <i class="fas fa-cog"></i>
-                                Настройки
-                            </a>
-                            <a href="#" class="dropdown-item">
-                                <i class="fas fa-door-open"></i>
-                                Покинуть игру
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
+<div id="app">
+    <!-- Хедер -->
+    <header class="header" v-if="campaignId">
+        <div class="left-header">
+            <h1>{{ campaignName }}</h1>
+        </div>
+        <div class="right-header">
+            <span class="master-name">
+                <i class="fas fa-crown"></i> Мастер {{ masterName }}
+            </span>
+            <button @click="showDiceModal = true"
+                    style="padding:10px 18px; background:#2a2118; border:2px solid #d4af37; color:#d4af37; border-radius:8px; cursor:pointer;">
+                🎲 Кубики
+            </button>
+        </div>
+    </header>
 
-        <!-- Основной контент -->
-        <main class="main-content">
-            <!-- Левая панель - список игроков -->
-            <div class="left-panel">
-                <div class="players-card">
-                    <div class="card-header">
-                        <h3>
-                            <i class="fas fa-users"></i>
-                            Отряд
-                        </h3>
-                        <span class="players-count">{{ players.length }}/{{ maxPlayers }}</span>
-                    </div>
-                    <div class="players-list">
-                        <div v-for="player in players" :key="player.id"
-                             class="player-item" :class="{ 'master': player.isMaster, 'current-user': player.isCurrentUser }">
-                            <div class="player-avatar">
-                                <i :class="player.icon"></i>
-                            </div>
-                            <div class="player-info">
-                                <div class="player-name">{{ player.name }}</div>
-                                <div class="player-character" v-if="player.character">
-                                    {{ player.character }}
-                                </div>
-                                <div class="player-status" :class="player.status">
-                                    <i class="fas fa-circle"></i>
-                                    {{ getStatusText(player.status) }}
-                                </div>
-                            </div>
-                            <div class="player-level" v-if="player.level">
-                                Ур. {{ player.level }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Легенда карты -->
-                <div class="map-legend-card">
-                    <div class="card-header">
-                        <h4>
-                            <i class="fas fa-map-signs"></i>
-                            Легенда Карты
-                        </h4>
-                    </div>
-                    <div class="legend-content">
-                        <div class="legend-section">
-                            <h5>Типы местности:</h5>
-                            <div class="legend-items">
-                                <div class="legend-item" v-for="terrain in currentTerrainTypes" :key="terrain.type">
-                                    <div class="legend-color" :style="{backgroundColor: terrain.color}"></div>
-                                    <span>{{ terrain.name }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="legend-section">
-                            <h5>Токены:</h5>
-                            <div class="legend-items">
-                                <div class="legend-item" v-for="token in tokenTypes" :key="token.type">
-                                    <i :class="token.icon" :style="{color: token.color}"></i>
-                                    <span>{{ token.name }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Центральная панель - карта и чат -->
-            <div class="center-panel">
-                <!-- Игровая карта -->
-                <div class="map-container">
-                    <div class="map-header">
-                        <h3>
-                            <i class="fas fa-map"></i>
-                            {{ mapTitle }}
-                        </h3>
-                        <div class="map-info">
-                            <span class="map-theme">Тема: {{ mapTheme }}</span>
-                            <span class="map-size">{{ mapSize }}</span>
-                        </div>
-                        <div class="map-controls">
-                            <button class="map-btn" @click="zoomIn">
-                                <i class="fas fa-search-plus"></i>
-                            </button>
-                            <button class="map-btn" @click="zoomOut">
-                                <i class="fas fa-search-minus"></i>
-                            </button>
-                            <button class="map-btn" @click="resetZoom">
-                                <i class="fas fa-expand-arrows-alt"></i>
-                            </button>
-                            <button class="map-btn" @click="generateNewMap">
-                                <i class="fas fa-redo"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="map-content" :style="{ transform: `scale(${mapZoom})` }">
-                        <div class="game-map" :class="mapClass">
-                            <div class="map-grid">
-                                <div v-for="cell in mapCells" :key="cell.id"
-                                     class="map-cell" @click="selectCell(cell)"
-                                     :class="{ 'selected': selectedCell === cell.id }">
-                                    <div class="cell-terrain" :class="cell.terrainClass">
-                                        <i :class="cell.terrainIcon"></i>
-                                    </div>
-                                    <div v-if="cell.token" class="map-token" :class="cell.token.type">
-                                        <i :class="cell.token.icon"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="map-legend">
-                        <div class="legend-item" v-for="item in quickLegend" :key="item.type">
-                            <i :class="item.icon" :style="{color: item.color}"></i>
-                            <span>{{ item.name }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Чат -->
-                <div class="chat-container">
-                    <div class="chat-header">
-                        <h3>
-                            <i class="fas fa-comments"></i>
-                            Общий Чат
-                        </h3>
-                        <div class="chat-info">
-                            <span class="online-count">{{ onlinePlayers }} онлайн</span>
-                        </div>
-                    </div>
-                    <div class="chat-messages" ref="chatMessages">
-                        <div v-for="message in messages" :key="message.id"
-                             class="message" :class="message.type">
-                            <div class="message-sender" v-if="message.type !== 'system'">
-                                {{ message.sender }}
-                            </div>
-                            <div class="message-content">
-                                {{ message.content }}
-                            </div>
-                            <div class="message-time">
-                                {{ formatTime(message.timestamp) }}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="chat-input-container">
-                        <div class="voice-controls">
-                            <button class="voice-btn" :class="{ 'active': isVoiceActive }"
-                                    @click="toggleVoice">
-                                <i class="fas" :class="voiceIcon"></i>
-                            </button>
-                        </div>
-                        <div class="chat-input-wrapper">
-                            <input type="text" v-model="newMessage" @keyup.enter="sendMessage"
-                                   class="chat-input" placeholder="Введите сообщение...">
-                            <button class="send-btn" @click="sendMessage">
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
-                        </div>
-                        <div class="quick-dice">
-                            <button class="dice-quick-btn" @click="quickRoll('d20')" title="Бросить d20">
-                                d20
-                            </button>
-                            <button class="dice-quick-btn" @click="quickRoll('d6')" title="Бросить d6">
-                                d6
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Правая панель - инструменты -->
-            <div class="right-panel">
-                <!-- Информация о кампании -->
-                <div class="campaign-info-card">
-                    <div class="card-header">
-                        <h3>
-                            <i class="fas fa-scroll"></i>
-                            О Кампании
-                        </h3>
-                    </div>
-                    <div class="campaign-details">
-                        <div class="detail-item">
-                            <strong>Сеттинг:</strong> {{ campaignSetting }}
-                        </div>
-                        <div class="detail-item">
-                            <strong>Тон:</strong> {{ campaignTone }}
-                        </div>
-                        <div class="detail-item">
-                            <strong>Уровень:</strong> {{ campaignLevel }}
-                        </div>
-                        <div class="detail-item">
-                            <strong>Сложность:</strong> {{ campaignDifficulty }}
-                        </div>
-                        <div class="plot-preview">
-                            <strong>Сюжет:</strong>
-                            <p>{{ campaignPlot }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Инструменты мастера/игрока -->
-                <div class="tools-card">
-                    <div class="card-header">
-                        <h3>
-                            <i class="fas fa-tools"></i>
-                            Инструменты Карты
-                        </h3>
-                    </div>
-                    <div class="tools-content">
-                        <!-- Управление картой -->
-                        <div class="tool-section">
-                            <h4>Управление картой</h4>
-                            <div class="map-tools">
-                                <button class="tool-btn" @click="addPlayerToken">
-                                    <i class="fas fa-user-plus"></i>
-                                    Добавить игрока
-                                </button>
-                                <button class="tool-btn" @click="addEnemyToken">
-                                    <i class="fas fa-dragon"></i>
-                                    Добавить врага
-                                </button>
-                                <button class="tool-btn" @click="addLocationToken">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    Добавить локацию
-                                </button>
-                                <button class="tool-btn" @click="clearTokens">
-                                    <i class="fas fa-trash"></i>
-                                    Очистить токены
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Настройки карты -->
-                        <div class="tool-section">
-                            <h4>Настройки отображения</h4>
-                            <div class="map-settings">
-                                <label class="setting-item">
-                                    <input type="checkbox" v-model="showGrid">
-                                    Показывать сетку
-                                </label>
-                                <label class="setting-item">
-                                    <input type="checkbox" v-model="showTokens">
-                                    Показывать токены
-                                </label>
-                                <label class="setting-item">
-                                    <input type="checkbox" v-model="animateTokens">
-                                    Анимировать токены
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- Модальное окно информации о ячейке -->
-        <div class="modal" v-if="showCellModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Информация о локации</h3>
-                    <button class="close-btn" @click="showCellModal = false">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="modal-body" v-if="selectedCellData">
-                    <div class="cell-info">
-                        <div class="cell-type">
-                            <i :class="selectedCellData.terrainIcon"></i>
-                            <strong>Тип:</strong> {{ selectedCellData.terrainName }}
-                        </div>
-                        <div class="cell-description">
-                            {{ selectedCellData.description }}
-                        </div>
-                        <div v-if="selectedCellData.token" class="cell-token">
-                            <strong>Токен:</strong>
-                            <i :class="selectedCellData.token.icon"></i>
-                            {{ selectedCellData.token.name }}
-                        </div>
-                    </div>
-                </div>
+    <!-- Основной контент -->
+    <div class="main-content" v-if="campaignId">
+        <!-- Левая панель -->
+        <div class="panel">
+            <h2><i class="fas fa-users"></i> Отряд</h2>
+            <div v-for="player in players" :key="player.id" style="padding:12px 0; border-bottom:1px solid #5a3c1a;">
+                <strong>{{ player.username || player.name }}</strong>
+                <span v-if="player.character"> — {{ player.character }}</span>
             </div>
         </div>
 
-        <!-- Модальное окно кубиков -->
-        <div class="modal-overlay" id="diceModal" :style="{display: showDiceModal ? 'flex' : 'none'}">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>🎲 Виртуальные кубики</h2>
-                    <button class="close-modal" @click="showDiceModal = false">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="dice-container">
-                        <button class="dice-btn" @click="rollDiceWithAnimation('d4')">d4</button>
-                        <button class="dice-btn" @click="rollDiceWithAnimation('d6')">d6</button>
-                        <button class="dice-btn" @click="rollDiceWithAnimation('d8')">d8</button>
-                        <button class="dice-btn" @click="rollDiceWithAnimation('d10')">d10</button>
-                        <button class="dice-btn" @click="rollDiceWithAnimation('d12')">d12</button>
-                        <button class="dice-btn" @click="rollDiceWithAnimation('d20')">d20</button>
-                        <button class="dice-btn" @click="rollDiceWithAnimation('d100')">d100</button>
-                    </div>
+        <!-- Карта -->
+        <div class="map-container">
+            <div class="map-header">
+                <i class="fas fa-map"></i> Карта сражения
+            </div>
+            <div class="canvas-wrapper">
+                <canvas ref="bgCanvas"></canvas>
+                <canvas ref="drawCanvas"
+                        @mousedown="startDrawing"
+                        @mousemove="draw"
+                        @mouseup="stopDrawing"
+                        @mouseleave="stopDrawing"></canvas>
+            </div>
 
-                    <div v-if="diceResult" class="dice-result dice-animation">
-                        {{ diceResult }}
-                    </div>
-
-                    <div class="dice-history" v-if="diceHistory.length > 0">
-                        <h4>История бросков:</h4>
-                        <div class="history-list">
-                            <div v-for="roll in diceHistory.slice().reverse().slice(0, 5)" :key="roll.id"
-                                 class="history-item">
-                                <span class="dice-type">{{ roll.diceType }}</span>
-                                <span class="dice-value">{{ roll.result }}</span>
-                                <span class="dice-time">{{ roll.time }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="draw-tools">
+                <button class="tool-btn" :class="{active: tool==='pen'}" @click="tool='pen'" title="Кисть">✏️</button>
+                <button class="tool-btn" :class="{active: tool==='eraser'}" @click="tool='eraser'" title="Ластик">🧼</button>
+                <input type="color" v-model="color" style="width:55px;height:55px;border:none;border-radius:50%;" title="Цвет">
+                <input type="range" v-model="brushSize" min="3" max="60" style="width:120px;" title="Размер кисти">
+                <button class="tool-btn" @click="clearDrawing" title="Очистить рисунок">♻️</button>
+                <button class="tool-btn" @click="uploadBackground" v-if="isMaster" title="Загрузить свою карту">📤</button>
             </div>
         </div>
 
-        <!-- Модальное окно голосового чата -->
-        <div class="modal-overlay" id="voiceChatModal" :style="{display: showVoiceChatModal ? 'flex' : 'none'}">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>🎤 Голосовой чат</h2>
-                    <button class="close-modal" @click="closeVoiceChat">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="voice-chat-container">
-                        <div class="video-section">
-                            <div class="video-wrapper">
-                                <h4>Ваше видео</h4>
-                                <video id="localVideo" autoplay muted></video>
-                                <div class="video-status">
-                                    <span class="status-indicator" :class="{ 'muted': isVoiceMuted }"></span>
-                                    {{ isVoiceMuted ? 'Микрофон выключен' : 'Микрофон включен' }}
-                                </div>
-                            </div>
-
-                            <div class="voice-controls">
-                                <button class="control-btn" @click="toggleVoiceCall"
-                                        :class="{ 'danger': isVoiceCallActive }">
-                                    <i class="fas" :class="isVoiceCallActive ? 'fa-phone-slash' : 'fa-phone'"></i>
-                                    {{ isVoiceCallActive ? 'Завершить звонок' : 'Начать звонок' }}
-                                </button>
-                                <button class="control-btn" @click="toggleMute">
-                                    <i class="fas" :class="isVoiceMuted ? 'fa-microphone-slash' : 'fa-microphone'"></i>
-                                    {{ isVoiceMuted ? 'Включить звук' : 'Выключить звук' }}
-                                </button>
-                                <button class="control-btn" @click="toggleScreenShare" :disabled="!isVoiceCallActive">
-                                    <i class="fas fa-desktop"></i>
-                                    {{ isScreenSharing ? 'Остановить демонстрацию' : 'Демонстрация экрана' }}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="participants-section">
-                            <h4>Участники ({{ voiceParticipants.length }})</h4>
-                            <div class="participants-list">
-                                <div v-for="participant in voiceParticipants" :key="participant.id"
-                                     class="participant">
-                                    <div class="status-indicator" :class="{ 'muted': participant.muted }"></div>
-                                    <span>{{ participant.name }}</span>
-                                    <span class="participant-status">
-                                        {{ participant.muted ? 'Безмолвие' : 'Говорит' }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="chat-section">
-                                <h4>Текстовый чат</h4>
-                                <div class="voice-messages">
-                                    <div v-for="msg in voiceMessages" :key="msg.id" class="voice-message">
-                                        <strong>{{ msg.sender }}:</strong> {{ msg.content }}
-                                    </div>
-                                </div>
-                                <div class="voice-input">
-                                    <input type="text" v-model="voiceMessage" @keyup.enter="sendVoiceMessage"
-                                           placeholder="Введите сообщение...">
-                                    <button @click="sendVoiceMessage">Отправить</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Уведомления -->
-        <div class="message" :class="{ 'success': message.success, 'error': !message.success }" v-if="message.text">
-            {{ message.text }}
+        <!-- Правая панель -->
+        <div class="panel">
+            <h2><i class="fas fa-scroll"></i> О кампании</h2>
+            <p><strong>Сеттинг:</strong> {{ campaignSetting }}</p>
+            <p><strong>Тон:</strong> {{ campaignTone }}</p>
+            <p><strong>Сложность:</strong> {{ campaignDifficulty }}</p>
         </div>
     </div>
 
-    <script>
-        const { createApp } = Vue;
-
-        createApp({
-            data() {
-                return {
-                    // Данные кампании
-                    campaignId: null,
-                    campaignName: 'Название кампании',
-                    gameMaster: 'Мастер',
-                    campaignSetting: '',
-                    campaignTone: '',
-                    campaignLevel: '1',
-                    campaignDifficulty: 'Средняя',
-                    campaignPlot: '',
-
-                    // Данные пользователя
-                    userName: 'Игрок',
-                    showUserMenu: false,
-
-                    // Игроки
-                    players: [],
-                    maxPlayers: 4,
-                    onlinePlayers: 0,
-
-                    // Карта
-                    mapZoom: 1,
-                    mapCells: [],
-                    selectedCell: null,
-                    showCellModal: false,
-                    selectedCellData: null,
-                    mapTitle: 'Карта Приключений',
-                    mapTheme: 'Стандартная',
-                    mapSize: '10x10',
-
-                    // Настройки карты
-                    showGrid: true,
-                    showTokens: true,
-                    animateTokens: true,
-
-                    // Чат
-                    messages: [],
-                    newMessage: '',
-                    isVoiceActive: false,
-
-                    // Кубики
-                    lastRoll: null,
-                    rollHistory: [],
-                    customDiceCount: 1,
-                    customDiceSides: 6,
-
-                    // Таймер
-                    sessionTime: 0,
-                    timerInterval: null,
-
-                    // Уведомления
-                    message: {
-                        text: '',
-                        success: false
-                    },
-
-                    // Модальные окна
-                    showDiceModal: false,
-                    showVoiceChatModal: false,
-
-                    // Данные для кубиков
-                    diceResult: null,
-                    diceHistory: [],
-
-                    // Данные для голосового чата
-                    isVoiceCallActive: false,
-                    isVoiceMuted: false,
-                    isScreenSharing: false,
-                    voiceParticipants: [],
-                    voiceMessages: [],
-                    voiceMessage: '',
-                    localStream: null,
-
-                    // Данные для генерации карты
-                    settingData: {
-                        'forgotten-realms': {
-                            name: 'Забытые Королевства',
-                            terrains: ['forest', 'mountain', 'plains', 'city', 'dungeon', 'water', 'swamp'],
-                            colors: ['#228b22', '#8b4513', '#90ee90', '#ffd700', '#8b0000', '#1e90ff', '#2f4f4f'],
-                            theme: 'Фэнтезийный континент с древними руинами и городами',
-                            commonTokens: ['player', 'npc', 'dragon', 'castle', 'village']
-                        },
-                        'eberron': {
-                            name: 'Эберрон',
-                            terrains: ['city', 'forest', 'mountain', 'plains', 'dungeon', 'magic'],
-                            colors: ['#4cc9f0', '#228b22', '#8b4513', '#90ee90', '#8b0000', '#9370db'],
-                            theme: 'Магический техно-фэнтези мир',
-                            commonTokens: ['player', 'npc', 'construct', 'airship', 'magic_tower']
-                        },
-                        'ravenloft': {
-                            name: 'Равенлофт',
-                            terrains: ['forest', 'swamp', 'mountain', 'castle', 'graveyard', 'village'],
-                            colors: ['#2f4f4f', '#2f4f4f', '#8b4513', '#8b0000', '#696969', '#a9a9a9'],
-                            theme: 'Мрачная готическая атмосфера',
-                            commonTokens: ['player', 'vampire', 'ghost', 'castle', 'graveyard']
-                        },
-                        'dark-sun': {
-                            name: 'Тёмное Солнце',
-                            terrains: ['desert', 'mountain', 'ruins', 'oasis', 'canyon'],
-                            colors: ['#f4a460', '#8b4513', '#696969', '#90ee90', '#a52a2a'],
-                            theme: 'Постапокалиптическая пустыня',
-                            commonTokens: ['player', 'npc', 'beast', 'ruins', 'oasis']
-                        },
-                        'planescape': {
-                            name: 'Планарные странствия',
-                            terrains: ['void', 'city', 'magic', 'crystal', 'cloud'],
-                            colors: ['#4b0082', '#9370db', '#00ffff', '#ff69b4', '#87ceeb'],
-                            theme: 'Мультивселенная и межпространственные путешествия',
-                            commonTokens: ['player', 'npc', 'portal', 'tower', 'beast']
-                        },
-                        'spelljammer': {
-                            name: 'Заклинательный Летун',
-                            terrains: ['space', 'asteroid', 'planet', 'ship', 'nebula'],
-                            colors: ['#000033', '#696969', '#228b22', '#8b4513', '#4b0082'],
-                            theme: 'Космические путешествия на магических кораблях',
-                            commonTokens: ['player', 'npc', 'spaceship', 'planet', 'alien']
-                        },
-                        'custom': {
-                            name: 'Свой сеттинг',
-                            terrains: ['forest', 'mountain', 'plains', 'city', 'water'],
-                            colors: ['#228b22', '#8b4513', '#90ee90', '#ffd700', '#1e90ff'],
-                            theme: 'Уникальный мир мастера',
-                            commonTokens: ['player', 'npc', 'location', 'treasure']
-                        }
-                    },
-
-                    terrainTypes: {
-                        forest: { name: 'Лес', icon: 'fas fa-tree', color: '#228b22' },
-                        mountain: { name: 'Горы', icon: 'fas fa-mountain', color: '#8b4513' },
-                        water: { name: 'Вода', icon: 'fas fa-water', color: '#1e90ff' },
-                        desert: { name: 'Пустыня', icon: 'fas fa-sun', color: '#f4a460' },
-                        city: { name: 'Город', icon: 'fas fa-city', color: '#ffd700' },
-                        dungeon: { name: 'Подземелье', icon: 'fas fa-dungeon', color: '#8b0000' },
-                        plains: { name: 'Равнины', icon: 'fas fa-seedling', color: '#90ee90' },
-                        swamp: { name: 'Болото', icon: 'fas fa-frog', color: '#2f4f4f' },
-                        void: { name: 'Бездна', icon: 'fas fa-eye', color: '#4b0082' },
-                        space: { name: 'Космос', icon: 'fas fa-star', color: '#00ffff' },
-                        magic: { name: 'Магия', icon: 'fas fa-hat-wizard', color: '#9370db' },
-                        crystal: { name: 'Кристаллы', icon: 'fas fa-gem', color: '#ff69b4' },
-                        cloud: { name: 'Облака', icon: 'fas fa-cloud', color: '#87ceeb' },
-                        asteroid: { name: 'Астероид', icon: 'fas fa-meteor', color: '#696969' },
-                        planet: { name: 'Планета', icon: 'fas fa-globe', color: '#228b22' },
-                        ship: { name: 'Корабль', icon: 'fas fa-ship', color: '#8b4513' },
-                        nebula: { name: 'Туманность', icon: 'fas fa-cloud-moon', color: '#4b0082' },
-                        ruins: { name: 'Руины', icon: 'fas fa-monument', color: '#696969' },
-                        oasis: { name: 'Оазис', icon: 'fas fa-umbrella-beach', color: '#90ee90' },
-                        canyon: { name: 'Каньон', icon: 'fas fa-hill-rockslide', color: '#a52a2a' },
-                        graveyard: { name: 'Кладбище', icon: 'fas fa-tombstone', color: '#696969' },
-                        village: { name: 'Деревня', icon: 'fas fa-home', color: '#a9a9a9' }
-                    },
-
-                    tokenTypes: {
-                        player: { name: 'Игрок', icon: 'fas fa-user', color: '#ff6b6b', type: 'token-player' },
-                        enemy: { name: 'Враг', icon: 'fas fa-dragon', color: '#dc143c', type: 'token-enemy' },
-                        npc: { name: 'NPC', icon: 'fas fa-user-friends', color: '#87ceeb', type: 'token-npc' },
-                        location: { name: 'Локация', icon: 'fas fa-map-marker-alt', color: '#ffd700', type: 'token-location' },
-                        treasure: { name: 'Сокровище', icon: 'fas fa-coins', color: '#ffa500', type: 'token-treasure' }
-                    }
-                };
-            },
-            computed: {
-                mapClass() {
-                    return `map-${this.campaignSetting}`;
-                },
-
-                currentTerrainTypes() {
-                    if (!this.campaignSetting) return [];
-                    const setting = this.settingData[this.campaignSetting];
-                    return setting.terrains.map(terrain => this.terrainTypes[terrain]);
-                },
-
-                quickLegend() {
-                    const legend = [];
-                    legend.push(this.tokenTypes.player);
-                    legend.push(this.tokenTypes.enemy);
-                    legend.push(this.tokenTypes.location);
-                    return legend;
-                },
-
-                voiceIcon() {
-                    return this.isVoiceActive ? 'fa-microphone' : 'fa-microphone-slash';
-                }
-            },
-            methods: {
-                // Инициализация данных кампании
-                loadCampaignData() {
-                    try {
-                        const urlParams = new URLSearchParams(window.location.search);
-                        this.campaignId = urlParams.get('id');
-
-                        if (!this.campaignId) {
-                            console.error('ID кампании не указан');
-                            return;
-                        }
-
-                        const campaigns = JSON.parse(localStorage.getItem('dnd_campaigns') || '[]');
-                        const campaign = campaigns.find(c => c.id == this.campaignId);
-
-                        if (campaign) {
-                            this.campaignName = campaign.name;
-                            this.gameMaster = campaign.master_name;
-                            this.campaignSetting = campaign.setting;
-                            this.campaignTone = this.getToneName(campaign.tone);
-                            this.campaignLevel = campaign.startingLevel;
-                            this.campaignDifficulty = this.getDifficultyName(campaign.difficulty);
-                            this.campaignPlot = campaign.plot;
-                            this.maxPlayers = campaign.maxPlayers;
-
-                            this.generateMap();
-                            this.loadPlayers();
-                        } else {
-                            console.error('Кампания не найдена');
-                            this.showMessage('Кампания не найдена', false);
-                        }
-                    } catch (error) {
-                        console.error('❌ Ошибка загрузки кампании:', error);
-                    }
-                },
-
-                // Генерация карты на основе сеттинга
-                generateMap() {
-                    if (!this.campaignSetting) return;
-
-                    const setting = this.settingData[this.campaignSetting];
-                    const gridSize = 10;
-                    this.mapCells = [];
-
-                    let sizeMultiplier = 1;
-                    if (this.campaignDifficulty.includes('Сложная')) sizeMultiplier = 1.2;
-                    if (this.campaignDifficulty.includes('Смертельная')) sizeMultiplier = 1.5;
-
-                    const actualSize = Math.floor(gridSize * sizeMultiplier);
-                    this.mapSize = `${actualSize}x${actualSize}`;
-
-                    for (let y = 0; y < actualSize; y++) {
-                        for (let x = 0; x < actualSize; x++) {
-                            const terrainType = setting.terrains[Math.floor(Math.random() * setting.terrains.length)];
-                            const terrain = this.terrainTypes[terrainType];
-
-                            const cell = {
-                                id: `${x}-${y}`,
-                                x: x,
-                                y: y,
-                                terrain: terrainType,
-                                terrainClass: `terrain-${terrainType}`,
-                                terrainIcon: terrain.icon,
-                                terrainName: terrain.name,
-                                description: this.generateCellDescription(terrainType, x, y),
-                                token: null
-                            };
-
-                            if (Math.random() < 0.2) {
-                                const tokenType = setting.commonTokens[Math.floor(Math.random() * setting.commonTokens.length)];
-                                cell.token = {
-                                    type: this.tokenTypes[tokenType].type,
-                                    icon: this.tokenTypes[tokenType].icon,
-                                    name: this.tokenTypes[tokenType].name
-                                };
-                            }
-
-                            this.mapCells.push(cell);
-                        }
-                    }
-
-                    this.mapTitle = `Карта ${setting.name}`;
-                    this.mapTheme = setting.theme;
-                },
-
-                // Генерация описания ячейки
-                generateCellDescription(terrainType, x, y) {
-                    const descriptions = {
-                        forest: ['Густой древний лес', 'Зачарованная роща', 'Лесная поляна', 'Тёмный лес'],
-                        mountain: ['Высокие горы', 'Скалистый утёс', 'Горный перевал', 'Пещера в горах'],
-                        water: ['Озеро с чистой водой', 'Бурная река', 'Тихая заводь', 'Водопад'],
-                        desert: ['Бескрайние пески', 'Пустынный оазис', 'Выжженная земля', 'Дюны'],
-                        city: ['Городские улицы', 'Центральная площадь', 'Рыночный район', 'Резиденция'],
-                        dungeon: ['Мрачное подземелье', 'Древние катакомбы', 'Лабиринт тоннелей', 'Сокровищница'],
-                        plains: ['Зелёные равнины', 'Цветущий луг', 'Холмистая местность', 'Сельхозугодья'],
-                        swamp: ['Топкое болото', 'Заболоченный лес', 'Трясина', 'Болотная заводь'],
-                        void: ['Бездна между мирами', 'Пространственный разлом', 'Эфирная пустота', 'Портал'],
-                        space: ['Космический простор', 'Астероидное поле', 'Планетная орбита', 'Туманность'],
-                        magic: ['Магическая аномалия', 'Поле магии', 'Руны силы', 'Энергетический вихрь']
-                    };
-
-                    const descList = descriptions[terrainType] || ['Неизвестная местность'];
-                    return descList[Math.floor(Math.random() * descList.length)];
-                },
-
-                // Загрузка игроков
-                loadPlayers() {
-                    this.players = [
-                        {
-                            id: 1,
-                            name: this.gameMaster,
-                            character: 'Мастер',
-                            level: null,
-                            status: 'online',
-                            isMaster: true,
-                            isCurrentUser: false,
-                            icon: 'fas fa-crown'
-                        },
-                        {
-                            id: 2,
-                            name: 'Арагорн',
-                            character: 'Воин',
-                            level: this.campaignLevel,
-                            status: 'online',
-                            isMaster: false,
-                            isCurrentUser: true,
-                            icon: 'fas fa-shield-alt'
-                        },
-                        {
-                            id: 3,
-                            name: 'Гэндальф',
-                            character: 'Волшебник',
-                            level: this.campaignLevel,
-                            status: 'online',
-                            isMaster: false,
-                            isCurrentUser: false,
-                            icon: 'fas fa-hat-wizard'
-                        }
-                    ];
-
-                    this.onlinePlayers = this.players.filter(p => p.status === 'online').length;
-
-                    // Инициализируем участников голосового чата
-                    this.voiceParticipants = this.players.map(player => ({
-                        id: player.id,
-                        name: player.name,
-                        muted: false
-                    }));
-                },
-
-                // Вспомогательные методы
-                getToneName(toneValue) {
-                    const tones = {
-                        'heroic': 'Героический',
-                        'dark': 'Тёмный',
-                        'humorous': 'Юмористический',
-                        'mysterious': 'Загадочный'
-                    };
-                    return tones[toneValue] || toneValue;
-                },
-
-                getDifficultyName(difficulty) {
-                    const difficulties = {
-                        'easy': 'Лёгкая',
-                        'medium': 'Средняя',
-                        'hard': 'Сложная',
-                        'deadly': 'Смертельная'
-                    };
-                    return difficulties[difficulty] || difficulty;
-                },
-
-                getStatusText(status) {
-                    const statuses = {
-                        'online': 'В сети',
-                        'away': 'Отошёл',
-                        'offline': 'Не в сети'
-                    };
-                    return statuses[status] || status;
-                },
-
-                // Взаимодействие с картой
-                selectCell(cell) {
-                    this.selectedCell = cell.id;
-                    this.selectedCellData = cell;
-                    this.showCellModal = true;
-                },
-
-                zoomIn() {
-                    if (this.mapZoom < 2) {
-                        this.mapZoom += 0.1;
-                    }
-                },
-
-                zoomOut() {
-                    if (this.mapZoom > 0.5) {
-                        this.mapZoom -= 0.1;
-                    }
-                },
-
-                resetZoom() {
-                    this.mapZoom = 1;
-                },
-
-                generateNewMap() {
-                    this.generateMap();
-                    this.showMessage('Новая карта сгенерирована!', true);
-                },
-
-                // Инструменты карты
-                addPlayerToken() {
-                    if (!this.selectedCell) {
-                        this.showMessage('Выберите ячейку для добавления токена', false);
-                        return;
-                    }
-
-                    const cell = this.mapCells.find(c => c.id === this.selectedCell);
-                    if (cell) {
-                        cell.token = {
-                            type: 'token-player',
-                            icon: 'fas fa-user',
-                            name: 'Игрок'
-                        };
-                        this.showMessage('Токен игрока добавлен', true);
-                    }
-                },
-
-                addEnemyToken() {
-                    if (!this.selectedCell) {
-                        this.showMessage('Выберите ячейку для добавления токена', false);
-                        return;
-                    }
-
-                    const cell = this.mapCells.find(c => c.id === this.selectedCell);
-                    if (cell) {
-                        cell.token = {
-                            type: 'token-enemy',
-                            icon: 'fas fa-dragon',
-                            name: 'Враг'
-                        };
-                        this.showMessage('Токен врага добавлен', true);
-                    }
-                },
-
-                addLocationToken() {
-                    if (!this.selectedCell) {
-                        this.showMessage('Выберите ячейку для добавления токена', false);
-                        return;
-                    }
-
-                    const cell = this.mapCells.find(c => c.id === this.selectedCell);
-                    if (cell) {
-                        cell.token = {
-                            type: 'token-location',
-                            icon: 'fas fa-map-marker-alt',
-                            name: 'Локация'
-                        };
-                        this.showMessage('Токен локации добавлен', true);
-                    }
-                },
-
-                clearTokens() {
-                    this.mapCells.forEach(cell => {
-                        cell.token = null;
-                    });
-                    this.showMessage('Все токены очищены', true);
-                },
-
-                // Модальные окна
-                openDiceModal() {
-                    this.showDiceModal = true;
-                },
-
-                openVoiceChat() {
-                    this.showVoiceChatModal = true;
-                },
-
-                closeVoiceChat() {
-                    this.showVoiceChatModal = false;
-                    if (this.isVoiceCallActive) {
-                        this.endVoiceCall();
-                    }
-                },
-
-                // Функции кубиков
-                rollDiceWithAnimation(diceType) {
-                    this.diceResult = null;
-
-                    // Анимация
-                    setTimeout(() => {
-                        const result = this.rollDice(diceType);
-                        this.diceResult = result;
-                        this.lastRoll = result;
-
-                        // Добавляем в историю
-                        this.diceHistory.push({
-                            id: Date.now(),
-                            diceType: diceType,
-                            result: result,
-                            time: new Date().toLocaleTimeString()
-                        });
-
-                        // Добавляем сообщение в чат
-                        this.messages.push({
-                            id: Date.now(),
-                            type: 'system',
-                            content: `🎲 ${this.userName} бросает ${diceType}: ${result}`,
-                            timestamp: new Date()
-                        });
-                    }, 500);
-                },
-
-                rollDice(diceType) {
-                    const max = parseInt(diceType.substring(1));
-                    return Math.floor(Math.random() * max) + 1;
-                },
-
-                quickRoll(diceType) {
-                    const result = this.rollDice(diceType);
-                    this.lastRoll = result;
-                    this.messages.push({
-                        id: Date.now(),
-                        type: 'system',
-                        content: `🎲 ${this.userName} бросает ${diceType}: ${result}`,
-                        timestamp: new Date()
-                    });
-                },
-
-                // Функции голосового чата
-                async toggleVoiceCall() {
-                    if (!this.isVoiceCallActive) {
-                        await this.startVoiceCall();
-                    } else {
-                        this.endVoiceCall();
-                    }
-                },
-
-                async startVoiceCall() {
-                    try {
-                        // Получаем доступ к медиа устройствам
-                        this.localStream = await navigator.mediaDevices.getUserMedia({
-                            video: true,
-                            audio: true
-                        });
-
-                        // Отображаем локальное видео
-                        const localVideo = document.getElementById('localVideo');
-                        if (localVideo) {
-                            localVideo.srcObject = this.localStream;
-                        }
-
-                        this.isVoiceCallActive = true;
-                        this.showMessage('Голосовой чат запущен!', true);
-
-                        // Имитируем подключение других участников
-                        this.simulateRemoteParticipants();
-
-                    } catch (error) {
-                        console.error('Ошибка запуска голосового чата:', error);
-                        this.showMessage('Не удалось запустить голосовой чат', false);
-                    }
-                },
-
-                endVoiceCall() {
-                    if (this.localStream) {
-                        this.localStream.getTracks().forEach(track => track.stop());
-                        this.localStream = null;
-                    }
-
-                    const localVideo = document.getElementById('localVideo');
-                    if (localVideo) {
-                        localVideo.srcObject = null;
-                    }
-
-                    this.isVoiceCallActive = false;
-                    this.isScreenSharing = false;
-                    this.showMessage('Голосовой чат завершен', true);
-
-                    // Очищаем удаленных участников
-                    this.voiceParticipants.forEach(p => {
-                        if (p.id !== 2) { // Оставляем текущего пользователя
-                            p.muted = true;
-                        }
-                    });
-                },
-
-                toggleMute() {
-                    this.isVoiceMuted = !this.isVoiceMuted;
-
-                    if (this.localStream) {
-                        this.localStream.getAudioTracks().forEach(track => {
-                            track.enabled = !this.isVoiceMuted;
-                        });
-                    }
-
-                    // Обновляем статус текущего пользователя
-                    const currentUser = this.voiceParticipants.find(p => p.id === 2);
-                    if (currentUser) {
-                        currentUser.muted = this.isVoiceMuted;
-                    }
-
-                    this.showMessage(this.isVoiceMuted ? 'Микрофон выключен' : 'Микрофон включен', true);
-                },
-
-                async toggleScreenShare() {
-                    if (!this.isVoiceCallActive) return;
-
-                    try {
-                        if (!this.isScreenSharing) {
-                            const screenStream = await navigator.mediaDevices.getDisplayMedia({
-                                video: true
-                            });
-
-                            // В реальном приложении здесь бы заменили видеотрек
-                            this.isScreenSharing = true;
-                            this.showMessage('Демонстрация экрана запущена', true);
-
-                            screenStream.getVideoTracks()[0].onended = () => {
-                                this.isScreenSharing = false;
-                                this.showMessage('Демонстрация экрана остановлена', true);
-                            };
-
-                        } else {
-                            this.isScreenSharing = false;
-                            this.showMessage('Демонстрация экрана остановлена', true);
-                        }
-                    } catch (error) {
-                        console.error('Ошибка демонстрации экрана:', error);
-                        this.showMessage('Ошибка демонстрации экрана', false);
-                    }
-                },
-
-                simulateRemoteParticipants() {
-                    // Имитируем подключение других участников
-                    setTimeout(() => {
-                        if (this.isVoiceCallActive) {
-                            this.voiceParticipants.forEach(p => {
-                                if (p.id !== 2) { // Не текущий пользователь
-                                    p.muted = Math.random() > 0.5;
-                                }
-                            });
-                            this.showMessage('Другие участники подключились к чату', true);
-                        }
-                    }, 2000);
-                },
-
-                sendVoiceMessage() {
-                    if (this.voiceMessage.trim()) {
-                        this.voiceMessages.push({
-                            id: Date.now(),
-                            sender: this.userName,
-                            content: this.voiceMessage
-                        });
-                        this.voiceMessage = '';
-
-                        // Имитируем ответы
-                        setTimeout(() => {
-                            if (this.isVoiceCallActive && Math.random() > 0.5) {
-                                const responses = [
-                                    'Отличный бросок!',
-                                    'Что будем делать дальше?',
-                                    'Вижу врага впереди!',
-                                    'Проверяю восприятие...'
-                                ];
-                                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-                                this.voiceMessages.push({
-                                    id: Date.now(),
-                                    sender: 'Мастер',
-                                    content: randomResponse
-                                });
-                            }
-                        }, 1000 + Math.random() * 2000);
-                    }
-                },
-
-                // Системные методы
-                showMessage(text, success) {
-                    this.message.text = text;
-                    this.message.success = success;
-                    setTimeout(() => {
-                        this.message.text = '';
-                    }, 4000);
-                },
-
-                toggleUserMenu() {
-                    this.showUserMenu = !this.showUserMenu;
-                },
-
-                formatTime(timestamp) {
-                    return new Date(timestamp).toLocaleTimeString('ru-RU', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
-                },
-
-                sendMessage() {
-                    if (this.newMessage.trim()) {
-                        this.messages.push({
-                            id: Date.now(),
-                            type: 'player',
-                            sender: this.userName,
-                            content: this.newMessage,
-                            timestamp: new Date()
-                        });
-                        this.newMessage = '';
-
-                        this.$nextTick(() => {
-                            const chatMessages = this.$refs.chatMessages;
-                            if (chatMessages) {
-                                chatMessages.scrollTop = chatMessages.scrollHeight;
-                            }
-                        });
-                    }
-                },
-
-                toggleVoice() {
-                    this.isVoiceActive = !this.isVoiceActive;
-                    this.showMessage(this.isVoiceActive ? 'Голосовой чат активирован' : 'Голосовой чат отключен', true);
-                }
-            },
-            mounted() {
-                // Загружаем данные пользователя
-                try {
-                    const userData = localStorage.getItem('current_user');
-                    if (userData) {
-                        const user = JSON.parse(userData);
-                        this.userName = user.username || 'Игрок';
-                    }
-                } catch (error) {
-                    console.error('❌ Ошибка загрузки пользователя:', error);
-                }
-
-                // Загружаем данные кампании
-                this.loadCampaignData();
-
-                // Запускаем таймер
-                this.startTimer();
-
-                // Добавляем тестовые сообщения в чат
-                this.messages.push({
-                    id: 1,
-                    type: 'system',
-                    content: `Добро пожаловать в кампанию "${this.campaignName}"!`,
-                    timestamp: new Date()
+    <!-- Сообщение об ошибке -->
+    <div class="error-box" v-else>
+        <h2>⚠️ ID кампании не указан</h2>
+        <p>Пожалуйста, откройте страницу с параметром <strong>id</strong></p>
+        <button @click="goBack" style="padding:12px 25px; background:#d4af37; color:#000; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
+            Вернуться назад
+        </button>
+    </div>
+
+    <!-- Модальное окно Кубиков -->
+    <div v-if="showDiceModal" class="dice-modal" @click.self="showDiceModal = false">
+        <div class="dice-content">
+            <h2><i class="fas fa-dice"></i> Бросок кубиков</h2>
+
+            <div class="dice-result">
+                {{ currentRoll ? currentRoll.result : '?' }}
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 20px 0;">
+                <button class="tool-btn" @click="rollDice(4)" style="width:70px; height:70px; font-size:1.4em;">d4</button>
+                <button class="tool-btn" @click="rollDice(6)" style="width:70px; height:70px; font-size:1.4em;">d6</button>
+                <button class="tool-btn" @click="rollDice(8)" style="width:70px; height:70px; font-size:1.4em;">d8</button>
+                <button class="tool-btn" @click="rollDice(10)" style="width:70px; height:70px; font-size:1.4em;">d10</button>
+                <button class="tool-btn" @click="rollDice(12)" style="width:70px; height:70px; font-size:1.4em;">d12</button>
+                <button class="tool-btn" @click="rollDice(20)" style="width:70px; height:70px; font-size:1.4em;">d20</button>
+                <button class="tool-btn" @click="rollDice(100)" style="width:70px; height:70px; font-size:1.4em;">d100</button>
+            </div>
+
+            <button @click="clearDiceHistory" style="margin-top:10px; padding:8px 16px; background:#3a2c20; color:#e0d0b8; border:2px solid #8b6914; border-radius:8px;">
+                Очистить историю
+            </button>
+
+            <div class="dice-history">
+                <h3>История бросков</h3>
+                <div v-for="(roll, i) in diceHistory" :key="i"
+                     style="padding:8px; background:#2a2118; margin-bottom:6px; border-radius:6px;">
+                    <strong>{{ roll.sides }}</strong> —
+                    <span style="color:#d4af37; font-size:1.4em;">{{ roll.result }}</span>
+                    <small style="float:right; color:#888;">{{ roll.time }}</small>
+                </div>
+                <div v-if="diceHistory.length === 0" style="color:#777; padding:15px; text-align:center;">
+                    Здесь будут появляться ваши броски
+                </div>
+            </div>
+
+            <button @click="showDiceModal = false"
+                    style="margin-top:20px; padding:10px 30px; background:#d4af37; color:#0a0a14; border:none; border-radius:8px; font-weight:bold;">
+                Закрыть
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+const API_BASE = 'http://localhost:3307';
+
+const { createApp } = Vue;
+
+createApp({
+    data() {
+        return {
+            campaignId: null,
+            campaignName: '',
+            masterName: '',
+            campaignSetting: '',
+            campaignTone: '',
+            campaignDifficulty: '',
+            isMaster: false,
+            players: [],
+
+            tool: 'pen',
+            color: '#ffaa00',
+            brushSize: 10,
+
+            bgCanvas: null,
+            drawCanvas: null,
+            bgCtx: null,
+            drawCtx: null,
+            isDrawing: false,
+            lastX: 0,
+            lastY: 0,
+
+            // Кубики
+            showDiceModal: false,
+            currentRoll: null,
+            diceHistory: [],
+            isRolling: false
+        };
+    },
+
+    methods: {
+        async loadCampaignData() {
+            const params = new URLSearchParams(window.location.search);
+            this.campaignId = params.get('id');
+            if (!this.campaignId) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/campaign/${this.campaignId}/header`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` }
                 });
 
-                console.log('🎮 Игровой хаб загружен');
-            },
-            beforeUnmount() {
-                this.pauseTimer();
-                if (this.isVoiceCallActive) {
-                    this.endVoiceCall();
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+
+                const json = await res.json();
+
+                if (json.success && json.data) {
+                    const d = json.data;
+                    this.campaignName = d.campaignName || 'Без названия';
+                    this.masterName = d.gameMaster || 'Мастер';
+                    this.campaignSetting = d.campaignSetting || 'Неизвестно';
+                    this.campaignTone = d.tone || 'Эпический';
+                    this.campaignDifficulty = d.difficulty || 'medium';
+                    this.isMaster = d.isMaster || false;
                 }
+            } catch (e) {
+                console.error('Ошибка загрузки кампании:', e);
+                this.campaignName = "Ошибка загрузки";
             }
-        }).mount('#app');
-    </script>
+
+            this.players = [{ id: 1, username: this.masterName, character: "Мастер" }];
+        },
+
+        initCanvas() {
+            this.bgCanvas = this.$refs.bgCanvas;
+            this.drawCanvas = this.$refs.drawCanvas;
+            if (!this.bgCanvas || !this.drawCanvas) return;
+
+            const w = this.drawCanvas.parentElement.clientWidth;
+            const h = this.drawCanvas.parentElement.clientHeight;
+
+            this.bgCanvas.width = this.drawCanvas.width = w;
+            this.bgCanvas.height = this.drawCanvas.height = h;
+
+            this.bgCtx = this.bgCanvas.getContext('2d');
+            this.drawCtx = this.drawCanvas.getContext('2d');
+
+            this.resetBackground();
+        },
+
+        resetBackground() {
+            this.bgCtx.fillStyle = '#0a0a1f';
+            this.bgCtx.fillRect(0, 0, this.bgCanvas.width, this.bgCanvas.height);
+
+            this.bgCtx.fillStyle = '#ffffff';
+            for (let i = 0; i < 120; i++) {
+                const x = Math.random() * this.bgCanvas.width;
+                const y = Math.random() * this.bgCanvas.height;
+                const size = Math.random() * 1.8 + 0.6;
+                this.bgCtx.fillRect(x, y, size, size);
+            }
+        },
+
+        uploadBackground() {
+            if (!this.isMaster) {
+                alert("Только Мастер может загружать свою карту");
+                return;
+            }
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const img = new Image();
+                    img.onload = () => this.bgCtx.drawImage(img, 0, 0, this.bgCanvas.width, this.bgCanvas.height);
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            };
+            input.click();
+        },
+
+        startDrawing(e) {
+            if (!this.drawCanvas) return;
+            this.isDrawing = true;
+            const rect = this.drawCanvas.getBoundingClientRect();
+            this.lastX = e.clientX - rect.left;
+            this.lastY = e.clientY - rect.top;
+        },
+
+        draw(e) {
+            if (!this.isDrawing || !this.drawCanvas) return;
+            const rect = this.drawCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            this.drawCtx.lineWidth = this.brushSize;
+            this.drawCtx.lineCap = 'round';
+            this.drawCtx.strokeStyle = this.tool === 'eraser' ? 'transparent' : this.color;
+            this.drawCtx.globalCompositeOperation = this.tool === 'eraser' ? 'destination-out' : 'source-over';
+
+            this.drawCtx.beginPath();
+            this.drawCtx.moveTo(this.lastX, this.lastY);
+            this.drawCtx.lineTo(x, y);
+            this.drawCtx.stroke();
+
+            this.lastX = x;
+            this.lastY = y;
+        },
+
+        stopDrawing() { this.isDrawing = false; },
+        clearDrawing() {
+            if (this.drawCtx) this.drawCtx.clearRect(0, 0, this.drawCanvas.width, this.drawCanvas.height);
+        },
+
+        // ==================== КУБИКИ ====================
+        rollDice(sides) {
+            if (this.isRolling) return;
+            this.isRolling = true;
+
+            let count = 0;
+            const interval = setInterval(() => {
+                const fake = Math.floor(Math.random() * sides) + 1;
+                this.currentRoll = { sides: `d${sides}`, result: fake };
+                count++;
+                if (count > 14) {
+                    clearInterval(interval);
+                    const final = Math.floor(Math.random() * sides) + 1;
+                    this.currentRoll = { sides: `d${sides}`, result: final };
+
+                    this.diceHistory.unshift({
+                        sides: `d${sides}`,
+                        result: final,
+                        time: new Date().toLocaleTimeString('ru-RU')
+                    });
+
+                    if (this.diceHistory.length > 20) this.diceHistory.pop();
+                    this.isRolling = false;
+                }
+            }, 55);
+        },
+
+        clearDiceHistory() {
+            this.diceHistory = [];
+            this.currentRoll = null;
+        },
+
+        goBack() {
+            window.history.back();
+        }
+    },
+
+    mounted() {
+        this.loadCampaignData();
+        this.$nextTick(() => this.initCanvas());
+        window.addEventListener('resize', () => this.initCanvas());
+    }
+}).mount('#app');
+</script>
 </body>
 </html>

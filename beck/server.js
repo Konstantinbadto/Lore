@@ -1,95 +1,115 @@
+const path = require('path');
+const dotenv = require('dotenv');
+
+// === ЗАГРУЗКА .env ===
+const result = dotenv.config({
+  path: path.resolve(__dirname, '.env'),
+  override: true
+});
+
+if (result.error) {
+  console.error('❌ DOTENV ERROR:', result.error.message);
+} else {
+  console.log('✅ .env успешно загружен');
+}
+
+// ====================== IMPORTS ======================
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const fs = require('fs').promises;
-const path = require('path');
+const mysql = require('mysql2/promise');
 
 const app = express();
-const PORT = 3000;
-const JWT_SECRET = 'your-secret-key';
-const DATA_FILE = path.join(__dirname, 'data.json');
+const PORT = process.env.PORT || 3307;
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-2026-change-me-please!';
 
-app.use(cors());
+// ====================== MIDDLEWARE ======================
+app.use(cors({
+    origin: '*',                    // Для разработки. Потом заменишь на домен фронтенда
+    credentials: true
+}));
 app.use(express.json());
 
-// Инициализация данных
-async function initData() {
-    try {
-        await fs.access(DATA_FILE);
-        console.log('✅ Файл данных найден');
-    } catch (error) {
-        // Создаем начальные данные
-        const initialData = {
-            users: [],
-            characters: [],
-            campaigns: []
-        };
-        await fs.writeFile(DATA_FILE, JSON.stringify(initialData, null, 2));
-        console.log('✅ Файл данных создан');
+// Security headers
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    next();
+});
+
+// ====================== MySQL POOL ======================
+const pool = mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT) || 3306,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME || 'dnd_lore',
+    waitForConnections: true,
+    connectionLimit: 15,
+    queueLimit: 0,
+    timezone: '+00:00'
+});
+
+// ====================== AUTH MIDDLEWARE ======================
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ success: false, error: 'Токен отсутствует' });
     }
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ success: false, error: 'Неверный или истёкший токен' });
+        req.user = user;
+        next();
+    });
 }
 
-// Чтение данных
-async function readData() {
-    try {
-        const data = await fs.readFile(DATA_FILE, 'utf8');
-        return JSON.parse(data);
-    } catch (error) {
-        return { users: [], characters: [], campaigns: [] };
-    }
-}
+// ====================== ROUTES ======================
 
-// Запись данных
-async function writeData(data) {
-    await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
-}
-
-// Регистрация пользователя
+// 1. Регистрация
 app.post('/api/auth/register', async (req, res) => {
     try {
-        const { username, email, password } = req.body;
-        console.log('📝 Регистрация:', { username, email });
+        const { username, email, password, login } = req.body;
 
-        const data = await readData();
-
-        // Проверяем существование пользователя
-        const existingUser = data.users.find(user => user.email === email);
-        if (existingUser) {
+        if (!username || !email || !password) {
             return res.status(400).json({
                 success: false,
-                error: 'Пользователь с таким email уже существует'
+                error: 'Не все обязательные поля заполнены'
             });
         }
 
-        // Хешируем пароль
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const [existing] = await pool.execute(
+            'SELECT id FROM User WHERE email = ? OR login = ?',
+            [email, login || username.toLowerCase()]
+        );
 
-        // Создаем пользователя
-        const newUser = {
-            user_id: Date.now(),
-            username,
-            email,
-            password_hash: hashedPassword,
-            role: 'player',
-            is_active: true,
-            created_at: new Date().toISOString(),
-            last_login: null
-        };
+        if (existing.length > 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Пользователь с таким email или логином уже существует'
+            });
+        }
 
-        data.users.push(newUser);
-        await writeData(data);
+        const hashedPassword = await bcrypt.hash(password, 12);
 
-        console.log('✅ Пользователь создан, ID:', newUser.user_id);
+        const [result] = await pool.execute(
+            `INSERT INTO User (username, login, email, password_hash, role)
+             VALUES (?, ?, ?, ?, 'player')`,
+            [username, login || username.toLowerCase(), email, hashedPassword]
+        );
 
-        res.json({
+        console.log(`✅ Новый пользователь зарегистрирован: ${username} (${email})`);
+
+        res.status(201).json({
             success: true,
-            message: 'Пользователь успешно зарегистрирован',
-            userId: newUser.user_id
+            message: 'Регистрация прошла успешно',
+            userId: result.insertId
         });
-
     } catch (error) {
-        console.error('❌ Registration error:', error);
+        console.error('Register error:', error);
         res.status(500).json({
             success: false,
             error: 'Ошибка сервера при регистрации'
@@ -97,279 +117,441 @@ app.post('/api/auth/register', async (req, res) => {
     }
 });
 
-// Вход пользователя
+// 2. Вход (Login)
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        console.log('🔐 Попытка входа:', { email });
 
-        const data = await readData();
+        if (!email || !password) {
+            return res.status(400).json({ success: false, error: 'Email и пароль обязательны' });
+        }
 
-        // Ищем пользователя
-        const user = data.users.find(u => u.email === email);
+        const [rows] = await pool.execute(
+            'SELECT id, username, login, email, role, password_hash FROM User WHERE email = ? OR login = ?',
+            [email, email]
+        );
+
+        const user = rows[0];
         if (!user) {
-            return res.status(400).json({
-                success: false,
-                error: 'Пользователь не найден'
-            });
+            return res.status(401).json({ success: false, error: 'Неверный email или пароль' });
         }
 
-        // Проверяем пароль
-        const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-        if (!isPasswordValid) {
-            return res.status(400).json({
-                success: false,
-                error: 'Неверный пароль'
-            });
+        const isValid = await bcrypt.compare(password, user.password_hash);
+        if (!isValid) {
+            return res.status(401).json({ success: false, error: 'Неверный email или пароль' });
         }
 
-        // Обновляем время входа
-        user.last_login = new Date().toISOString();
-        await writeData(data);
-
-        // Создаем JWT токен
         const token = jwt.sign(
             {
-                userId: user.user_id,
+                userId: user.id,
+                username: user.username,
                 email: user.email,
-                username: user.username
+                role: user.role
             },
             JWT_SECRET,
             { expiresIn: '24h' }
         );
 
-        console.log('✅ Успешный вход:', user.username);
-
         res.json({
             success: true,
             token,
             user: {
-                user_id: user.user_id,
+                user_id: user.id,
                 username: user.username,
                 email: user.email,
-                role: user.role
+                role: user.role || 'player'
             }
         });
-
     } catch (error) {
-        console.error('❌ Login error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Ошибка сервера при входе'
-        });
+        console.error('Login error:', error);
+        res.status(500).json({ success: false, error: 'Ошибка сервера' });
     }
 });
 
-// Получение данных пользователя
+// 3. Получение текущего пользователя
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
     try {
-        const data = await readData();
-        const user = data.users.find(u => u.user_id === req.user.userId);
+        const [users] = await pool.execute(
+            'SELECT id, username, login, email, role FROM User WHERE id = ?',
+            [req.user.userId]
+        );
 
-        if (!user) {
+        const user = users[0];
+        if (!user) return res.status(404).json({ success: false, error: 'Пользователь не найден' });
+
+        res.json({
+            success: true,
+            user: {
+                ...user,
+                user_id: user.id
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+app.post('/api/auth/select-role', authenticateToken, async (req, res) => {
+    try {
+        const { role } = req.body;
+
+        // Валидация роли
+        if (!role || !['player', 'master'].includes(role)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Неверная роль. Допустимо: player или master'
+            });
+        }
+
+        // Обновляем роль пользователя
+        const [result] = await pool.execute(
+            'UPDATE User SET role = ? WHERE id = ?',
+            [role, req.user.userId]
+        );
+
+        if (result.affectedRows === 0) {
             return res.status(404).json({
                 success: false,
                 error: 'Пользователь не найден'
             });
         }
 
-        // Находим персонажей пользователя
-        const characters = data.characters.filter(c => c.user_id === user.user_id);
-        const character = characters.length > 0 ? characters[0] : null;
+        // Получаем обновлённые данные пользователя
+        const [users] = await pool.execute(
+            'SELECT id, username, login, email, role FROM User WHERE id = ?',
+            [req.user.userId]
+        );
 
-        let campaign = null;
-        if (character && character.campaign_id) {
-            campaign = data.campaigns.find(c => c.campaign_id === character.campaign_id);
-        }
+        const updatedUser = users[0];
+
+        // Создаём новый токен с актуальной ролью
+        const newToken = jwt.sign(
+            {
+                userId: updatedUser.id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                role: updatedUser.role
+            },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        console.log(`✅ Пользователь ${updatedUser.username} выбрал роль: ${role}`);
 
         res.json({
             success: true,
+            message: `Роль "${role === 'player' ? 'Игрок' : 'Мастер'}" успешно выбрана`,
+            role: updatedUser.role,
+            token: newToken,
             user: {
-                ...user,
-                character,
-                campaign
+                user_id: updatedUser.id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                role: updatedUser.role
             }
         });
 
     } catch (error) {
-        console.error('❌ Get user error:', error);
+        console.error('Select role error:', error);
         res.status(500).json({
             success: false,
-            error: 'Ошибка сервера'
+            error: 'Ошибка сервера при выборе роли'
         });
     }
 });
-
-// Создание персонажа
+// 4. Создание персонажа
 app.post('/api/characters', authenticateToken, async (req, res) => {
     try {
-        const characterData = req.body;
-        const userId = req.user.userId;
+        const {
+            name, race, class: charClass, background,
+            strength = 8, dexterity = 8, constitution = 8,
+            intelligence = 8, wisdom = 8, charisma = 8,
+            level = 1
+        } = req.body;
 
-        console.log('🎭 Создание персонажа для пользователя:', userId);
-
-        const data = await readData();
-
-        const newCharacter = {
-            character_id: Date.now(),
-            user_id: userId,
-            name: characterData.name,
-            race: characterData.race,
-            class: characterData.class,
-            level: characterData.level || 1,
-            background: characterData.background || '',
-            is_active: true,
-            created_at: new Date().toISOString(),
-            abilities: characterData.abilities || {},
-            skills: characterData.skills || []
-        };
-
-        data.characters.push(newCharacter);
-        await writeData(data);
-
-        console.log('✅ Персонаж создан, ID:', newCharacter.character_id);
+        const [result] = await pool.execute(
+            `INSERT INTO \`character\`
+             (user_id, name, race, class, background, level,
+              strength, dexterity, constitution, intelligence, wisdom, charisma)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [req.user.userId, name, race, charClass, background || null, level,
+             strength, dexterity, constitution, intelligence, wisdom, charisma]
+        );
 
         res.json({
             success: true,
-            message: 'Персонаж создан',
-            characterId: newCharacter.character_id
+            message: 'Персонаж успешно создан',
+            characterId: result.insertId
         });
-
     } catch (error) {
-        console.error('❌ Create character error:', error);
+        console.error('Create character error:', error);
         res.status(500).json({
             success: false,
-            error: 'Ошибка создания персонажа'
+            error: error.message || 'Ошибка при создании персонажа'
         });
     }
 });
-
-// Создание кампании
-app.post('/api/campaigns', authenticateToken, async (req, res) => {
+app.get('/api/characters', authenticateToken, async (req, res) => {
     try {
-        const campaignData = req.body;
-        const userId = req.user.userId;
-
-        console.log('🏰 Создание кампании пользователем:', userId);
-
-        const data = await readData();
-
-        const newCampaign = {
-            campaign_id: Date.now(),
-            master_id: userId,
-            name: campaignData.name,
-            setting: campaignData.setting,
-            description: campaignData.description || '',
-            plot_summary: campaignData.plot || '',
-            max_players: campaignData.maxPlayers || 4,
-            starting_level: campaignData.startingLevel || 1,
-            difficulty: campaignData.difficulty || 'medium',
-            session_frequency: campaignData.sessionFrequency || 'weekly',
-            allow_homebrew: campaignData.allowHomebrew || false,
-            allow_multiclass: campaignData.allowMulticlass || true,
-            status: 'recruiting',
-            created_at: new Date().toISOString()
-        };
-
-        data.campaigns.push(newCampaign);
-        await writeData(data);
-
-        console.log('✅ Кампания создана, ID:', newCampaign.campaign_id);
+        const [characters] = await pool.execute(
+            `SELECT id, name, race, class, background, level, experience,
+                    strength, dexterity, constitution, intelligence,
+                    wisdom, charisma, created_at
+             FROM \`character\`
+             WHERE user_id = ?
+             ORDER BY created_at DESC`,
+            [req.user.userId]
+        );
 
         res.json({
             success: true,
-            message: 'Кампания создана',
-            campaignId: newCampaign.campaign_id
+            characters: characters
         });
-
     } catch (error) {
-        console.error('❌ Create campaign error:', error);
+        console.error('Get characters error:', error);
         res.status(500).json({
             success: false,
-            error: 'Ошибка создания кампании'
+            error: 'Ошибка при загрузке списка персонажей'
         });
     }
 });
-
-// Получение списка кампаний
-app.get('/api/campaigns', async (req, res) => {
+// ====================== КАМПАНИИ ======================
+app.get('/api/campaign/:id/header', authenticateToken, async (req, res) => {
     try {
-        const data = await readData();
+        const campaignId = parseInt(req.params.id);
 
-        const campaigns = data.campaigns
-            .filter(c => c.status === 'recruiting')
-            .map(campaign => {
-                const master = data.users.find(u => u.user_id === campaign.master_id);
-                return {
-                    ...campaign,
-                    master_name: master ? master.username : 'Unknown'
-                };
+        if (isNaN(campaignId)) {
+            return res.status(400).json({ success: false, error: 'Неверный ID кампании' });
+        }
+
+        const [rows] = await pool.execute(`
+            SELECT
+                c.id,
+                c.name AS campaignName,
+                c.setting AS campaignSetting,
+                c.tone,
+                c.difficulty,
+                c.status,
+                u.username AS gameMaster,
+                u.id AS master_id
+            FROM Campaign c
+            JOIN User u ON c.master_id = u.id
+            WHERE c.id = ?
+              AND (
+                  c.master_id = ?                                      -- Мастер имеет полный доступ
+                  OR EXISTS (                                          -- Игрок состоит в кампании
+                      SELECT 1
+                      FROM Campaign_Player cp
+                      WHERE cp.campaign_id = c.id
+                        AND cp.player_id = ?
+                  )
+              )
+        `, [campaignId, req.user.userId, req.user.userId]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Кампания не найдена или у вас нет доступа'
             });
+        }
+
+        const campaign = rows[0];
+
+        res.json({
+            success: true,
+            data: {
+                campaignName: campaign.campaignName,
+                gameMaster: campaign.gameMaster,
+                campaignSetting: campaign.campaignSetting || 'Неизвестно',
+                tone: campaign.tone || 'Эпический',
+                difficulty: campaign.difficulty || 'medium',
+                status: campaign.status,
+                isMaster: campaign.master_id === req.user.userId   // удобно для фронта
+            }
+        });
+
+    } catch (error) {
+        console.error('Ошибка загрузки header кампании:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Ошибка сервера при загрузке данных кампании'
+        });
+    }
+});
+// 1. Получить ВСЕ кампании текущего мастера
+app.get('/api/campaigns/my', authenticateToken, async (req, res) => {
+    try {
+        const [campaigns] = await pool.execute(`
+            SELECT id, name, setting, custom_setting, plot, tone,
+                   max_players, starting_level, allow_homebrew,
+                   allow_multiclass, session_frequency, difficulty,
+                   status, created_at, updated_at
+            FROM Campaign
+            WHERE master_id = ?
+            ORDER BY created_at DESC
+        `, [req.user.userId]);
 
         res.json({
             success: true,
             campaigns
         });
-
     } catch (error) {
-        console.error('❌ Get campaigns error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Ошибка получения кампаний'
-        });
+        console.error('Ошибка получения моих кампаний:', error);
+        res.status(500).json({ success: false, error: 'Ошибка получения кампаний' });
     }
 });
 
-// Middleware для проверки токена
-function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+// 2. Получить одну кампанию по ID (только свою)
+app.get('/api/campaigns/:id', authenticateToken, async (req, res) => {
+    try {
+        const [rows] = await pool.execute(`
+            SELECT * FROM Campaign
+            WHERE id = ? AND master_id = ?
+        `, [req.params.id, req.user.userId]);
 
-    if (!token) {
-        return res.status(401).json({
-            success: false,
-            error: 'Токен отсутствует'
-        });
-    }
-
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) {
-            return res.status(403).json({
+        if (rows.length === 0) {
+            return res.status(404).json({
                 success: false,
-                error: 'Неверный токен'
+                error: 'Кампания не найдена или доступ запрещён'
             });
         }
-        req.user = user;
-        next();
-    });
-}
 
-// Health check
-app.get('/api/health', async (req, res) => {
-    try {
-        await readData(); // Просто проверяем что файл читается
         res.json({
             success: true,
-            message: 'API работает нормально',
-            storage: 'local_file',
-            timestamp: new Date().toISOString()
+            campaign: rows[0]   // лучше явно указать ключ, чем спредить
+        });
+    } catch (error) {
+        console.error('Ошибка загрузки кампании:', error);
+        res.status(500).json({ success: false, error: 'Ошибка загрузки кампании' });
+    }
+});
+
+// 3. Создание новой кампании (ОДИН обработчик!)
+app.post('/api/campaigns', authenticateToken, async (req, res) => {
+    try {
+        const {
+            name,
+            setting,
+            custom_setting,
+            plot,
+            tone = null,
+            max_players = 4,
+            starting_level = 1,
+            allow_homebrew = false,
+            allow_multiclass = true,
+            session_frequency = 'weekly',
+            difficulty = 'medium'
+        } = req.body;
+
+        const [result] = await pool.execute(
+            `INSERT INTO Campaign
+             (master_id, name, setting, custom_setting, plot, tone,
+              max_players, starting_level, allow_homebrew, allow_multiclass,
+              session_frequency, difficulty, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'recruiting')`,
+            [
+                req.user.userId,
+                name,
+                setting,
+                custom_setting,
+                plot,
+                tone,
+                max_players,
+                starting_level,
+                allow_homebrew ? 1 : 0,
+                allow_multiclass ? 1 : 0,
+                session_frequency,
+                difficulty
+            ]
+        );
+
+        res.json({
+            success: true,
+            message: 'Кампания успешно создана',
+            campaignId: result.insertId
+        });
+    } catch (error) {
+        console.error('Ошибка создания кампании:', error);
+        res.status(500).json({ success: false, error: 'Ошибка создания кампании' });
+    }
+});
+
+// 4. Обновление кампании (PUT)
+app.put('/api/campaigns/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {
+            name,
+            setting,
+            custom_setting,
+            plot,
+            tone,
+            max_players,
+            starting_level,
+            allow_homebrew,
+            allow_multiclass,
+            session_frequency,
+            difficulty
+        } = req.body;
+
+        const [result] = await pool.execute(`
+            UPDATE Campaign
+            SET name = ?,
+                setting = ?,
+                custom_setting = ?,
+                plot = ?,
+                tone = ?,
+                max_players = ?,
+                starting_level = ?,
+                allow_homebrew = ?,
+                allow_multiclass = ?,
+                session_frequency = ?,
+                difficulty = ?,
+                updated_at = NOW()
+            WHERE id = ? AND master_id = ?
+        `, [
+            name, setting, custom_setting, plot, tone,
+            max_players, starting_level,
+            allow_homebrew ? 1 : 0,
+            allow_multiclass ? 1 : 0,
+            session_frequency, difficulty,
+            id, req.user.userId
+        ]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Кампания не найдена или у вас нет прав на редактирование'
+            });
+        }
+
+        res.json({ success: true, message: 'Кампания успешно обновлена' });
+    } catch (error) {
+        console.error('Ошибка обновления кампании:', error);
+        res.status(500).json({ success: false, error: 'Ошибка обновления кампании' });
+    }
+});
+// ====================== HEALTH CHECK ======================
+app.get('/api/health', async (req, res) => {
+    try {
+        const [tables] = await pool.query('SHOW TABLES');
+        res.json({
+            success: true,
+            message: 'Сервер и база данных работают',
+            tables: tables.map(t => Object.values(t)[0])
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            error: 'Ошибка работы с данными'
+            error: 'Проблема с базой данных',
+            details: error.message
         });
     }
 });
 
-// Инициализация и запуск
-async function startServer() {
-    await initData();
-    app.listen(PORT, () => {
-        console.log(`🚀 Server running on http://localhost:${PORT}`);
-        console.log('💾 Хранилище: локальный файл (data.json)');
-        console.log('📋 API endpoints готовы к работе!');
-    });
-}
-
-startServer();
+// ====================== ЗАПУСК СЕРВЕРА ======================
+app.listen(PORT, () => {
+    console.log(`🚀 D&D Lore Server запущен на порту ${PORT}`);
+    console.log(`🌍 Mode: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+});

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lore - Хроники Эландрии</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -404,17 +404,16 @@
     <div id="app">
         <div class="container">
             <div class="left-panel">
+                <!-- Левую панель оставил без изменений -->
                 <div class="logo">
                     <h1>LORE</h1>
                     <p>Хроники Эландрии</p>
                 </div>
-                <div class="dragon">
-                    <i class="fas fa-dragon"></i>
-                </div>
+                <div class="dragon"><i class="fas fa-dragon"></i></div>
                 <div class="lore-text">
                     <h3>Великие Хроники</h3>
-                    <p>Присоединяйтесь к величайшим летописцам Эландрии. Запечатлейте свои приключения в анналах истории и делитесь мудростью с будущими поколениями.</p>
-                    <p>Каждый зарегистрированный сказитель получит древний том знаний и доступ к тайным архивам королевства.</p>
+                    <p>Присоединяйтесь к величайшим летописцам Эландрии...</p>
+                    <p>Каждый зарегистрированный сказитель получит древний том знаний...</p>
                 </div>
             </div>
 
@@ -425,47 +424,31 @@
                     <form @submit.prevent="submitForm">
                         <div class="form-group">
                             <label for="name">Имя Летописца:</label>
-                            <input
-                                type="text"
-                                id="name"
-                                class="form-control"
-                                v-model="form.name"
-                                required
-                                :class="{ 'error': errors.name }"
-                                @blur="validateName"
-                                placeholder="Введите ваше имя"
-                            >
-                            <span class="error-message" v-if="errors.name">{{ errors.name }}</span>
+                            <input type="text" id="name" class="form-control"
+                                   v-model="form.username"
+                                   :class="{ 'error': errors.username }"
+                                   @blur="validateUsername"
+                                   placeholder="Введите ваше имя" required>
+                            <span class="error-message" v-if="errors.username">{{ errors.username }}</span>
                         </div>
 
                         <div class="form-group">
                             <label for="email">Магический Адрес:</label>
-                            <input
-                                type="email"
-                                id="email"
-                                class="form-control"
-                                v-model="form.email"
-                                required
-                                :class="{ 'error': errors.email }"
-                                @blur="validateEmail"
-                                placeholder="Введите ваш email"
-                            >
+                            <input type="email" id="email" class="form-control"
+                                   v-model="form.email"
+                                   :class="{ 'error': errors.email }"
+                                   @blur="validateEmail"
+                                   placeholder="Введите ваш email" required>
                             <span class="error-message" v-if="errors.email">{{ errors.email }}</span>
                         </div>
 
                         <div class="form-group">
                             <label for="password">Магический Шифр:</label>
-                            <input
-                                type="password"
-                                id="password"
-                                class="form-control"
-                                v-model="form.password"
-                                required
-                                :class="{ 'error': errors.password }"
-                                @blur="validatePassword"
-                                placeholder="Придумайте надежный пароль"
-                                minlength="6"
-                            >
+                            <input type="password" id="password" class="form-control"
+                                   v-model="form.password"
+                                   :class="{ 'error': errors.password }"
+                                   @blur="validatePassword"
+                                   placeholder="Придумайте надежный пароль" required minlength="6">
                             <span class="error-message" v-if="errors.password">{{ errors.password }}</span>
                         </div>
 
@@ -477,24 +460,18 @@
                     </form>
 
                     <button class="login-btn" @click="goToLogin">
-                        <i class="fas fa-door-open"></i>
-                        Уже присягнули? Войдите в архив
-                    </button>
-
-                    <button class="export-btn" @click="exportData">
-                        <i class="fas fa-download"></i>
-                        Скачать данные (data.json)
+                        <i class="fas fa-door-open"></i> Уже присягнули? Войдите в архив
                     </button>
 
                     <div class="message" :class="{ 'success': message.success, 'error': !message.success }" v-if="message.text">
                         {{ message.text }}
                     </div>
 
-                    <div class="confirmation-message" v-if="confirmationSent">
+                    <div class="confirmation-message" v-if="success">
                         <h3>Регистрация Успешна!</h3>
-                        <p>Добро пожаловать в Гильдию Летописцев, {{ form.name }}! Ваши данные сохранены.</p>
-                        <p><strong>Всего пользователей:</strong> {{ getUserCount() }}</p>
-                        <p><i>Да пребудет с вами мудрость древних!</i></p>
+                        <p>Добро пожаловать в Гильдию Летописцев, <strong>{{ form.username }}</strong>!</p>
+                        <p>Теперь вы можете войти в свой архив.</p>
+                        <button class="submit-btn" @click="goToLogin" style="margin-top:15px;">Перейти к входу</button>
                     </div>
                 </div>
             </div>
@@ -508,117 +485,59 @@
             data() {
                 return {
                     form: {
-                        name: '',
+                        username: '',
                         email: '',
                         password: ''
                     },
                     errors: {
-                        name: '',
+                        username: '',
                         email: '',
                         password: ''
                     },
                     loading: false,
-                    message: {
-                        text: '',
-                        success: false
-                    },
-                    confirmationSent: false
+                    message: { text: '', success: false },
+                    success: false
                 };
             },
-            mounted() {
-                console.log('📊 Текущие пользователи в localStorage:', this.getUsers());
-            },
+
             methods: {
-                validateName() {
-                    if (!this.form.name.trim()) {
-                        this.errors.name = 'Имя летописца обязательно для заполнения';
+                validateUsername() {
+                    if (!this.form.username.trim()) {
+                        this.errors.username = 'Имя летописца обязательно';
                         return false;
                     }
-
-                    if (this.form.name.length < 2) {
-                        this.errors.name = 'Имя должно содержать минимум 2 символа';
+                    if (this.form.username.length < 2) {
+                        this.errors.username = 'Имя должно быть не короче 2 символов';
                         return false;
                     }
-
-                    this.errors.name = '';
+                    this.errors.username = '';
                     return true;
                 },
 
                 validateEmail() {
                     if (!this.form.email.trim()) {
-                        this.errors.email = 'Магический адрес обязателен для заполнения';
+                        this.errors.email = 'Email обязателен';
                         return false;
                     }
-
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailRegex.test(this.form.email)) {
-                        this.errors.email = 'Введите корректный магический адрес';
+                    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!regex.test(this.form.email)) {
+                        this.errors.email = 'Введите корректный email';
                         return false;
                     }
-
-                    // Проверяем, нет ли уже пользователя с таким email
-                    const users = this.getUsers();
-                    if (users.find(user => user.email === this.form.email)) {
-                        this.errors.email = 'Этот магический адрес уже используется';
-                        return false;
-                    }
-
                     this.errors.email = '';
                     return true;
                 },
 
                 validatePassword() {
-                    if (!this.form.password) {
-                        this.errors.password = 'Магический шифр обязателен';
+                    if (!this.form.password || this.form.password.length < 6) {
+                        this.errors.password = 'Пароль должен содержать минимум 6 символов';
                         return false;
                     }
-
-                    if (this.form.password.length < 6) {
-                        this.errors.password = 'Шифр должен содержать минимум 6 символов';
-                        return false;
-                    }
-
                     this.errors.password = '';
                     return true;
                 },
-
-                validateForm() {
-                    const isNameValid = this.validateName();
-                    const isEmailValid = this.validateEmail();
-                    const isPasswordValid = this.validatePassword();
-
-                    return isNameValid && isEmailValid && isPasswordValid;
-                },
-
-                getUsers() {
-                    try {
-                        const users = JSON.parse(localStorage.getItem('dnd_users') || '[]');
-                        console.log('👥 Получены пользователи:', users);
-                        return users;
-                    } catch (error) {
-                        console.error('❌ Ошибка получения пользователей:', error);
-                        return [];
-                    }
-                },
-
-                saveUser(user) {
-                    try {
-                        const users = this.getUsers();
-                        users.push(user);
-                        localStorage.setItem('dnd_users', JSON.stringify(users));
-                        console.log('💾 Пользователь сохранен:', user);
-                        console.log('📊 Все пользователи после сохранения:', users);
-                    } catch (error) {
-                        console.error('❌ Ошибка сохранения пользователя:', error);
-                    }
-                },
-
-                getUserCount() {
-                    return this.getUsers().length;
-                },
-
                 async submitForm() {
-                    if (!this.validateForm()) {
+                    if (!this.validateUsername() || !this.validateEmail() || !this.validatePassword()) {
                         this.showMessage('Пожалуйста, исправьте ошибки в форме', false);
                         return;
                     }
@@ -627,86 +546,51 @@
                     this.message.text = '';
 
                     try {
-                        // Сохраняем пользователя в localStorage
-                        const user = {
-                            id: Date.now(),
-                            username: this.form.name.trim(),
-                            email: this.form.email.trim().toLowerCase(),
-                            password: this.form.password,
-                            role: 'player',
-                            created_at: new Date().toISOString(),
-                            last_login: null
-                        };
+                        const response = await fetch('http://localhost:3307/api/auth/register', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                username: this.form.username.trim(),
+                                email: this.form.email.trim().toLowerCase(),
+                                password: this.form.password,
+                                // login можно отправить таким же как username, если хочешь
+                                login: this.form.username.trim().toLowerCase()
+                            })
+                        });
 
-                        this.saveUser(user);
+                        const result = await response.json();
 
-                        // Сохраняем данные для дашборда
-                        localStorage.setItem('current_user', JSON.stringify(user));
+                        if (response.ok && result.success) {
+                            this.success = true;
+                            this.showMessage('Регистрация прошла успешно!', true);
 
-                        this.showMessage('Регистрация успешно завершена! Перенаправление...', true);
-                        this.confirmationSent = true;
-                        this.resetForm();
+                            // Сохраняем email/username для возможного авто-входа позже
+                            localStorage.setItem('just_registered_email', this.form.email);
 
-                        // Автоматический переход на dashboard через 2 секунды
-                        setTimeout(() => {
-                            window.location.href = 'dashboard.html';
-                        }, 2000);
-
+                            // Можно сразу перенаправить на login через 2 секунды
+                            setTimeout(() => {
+                                window.location.href = 'login.html';
+                            }, 2500);
+                        } else {
+                            this.showMessage(result.error || 'Ошибка регистрации', false);
+                        }
                     } catch (error) {
-                        console.error('Ошибка:', error);
-                        this.showMessage('Произошла ошибка при сохранении данных', false);
+                        console.error('Ошибка сети:', error);
+                        this.showMessage('Не удалось подключиться к серверу. Проверьте, запущен ли backend.', false);
                     } finally {
                         this.loading = false;
                     }
                 },
 
-                exportData() {
-                    try {
-                        const users = this.getUsers();
-                        const data = {
-                            users: users,
-                            export_date: new Date().toISOString(),
-                            total_users: users.length
-                        };
-
-                        const dataStr = JSON.stringify(data, null, 2);
-                        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(dataBlob);
-                        link.download = 'dnd_users_data.json';
-                        link.click();
-
-                        this.showMessage('Данные успешно экспортированы в файл!', true);
-                    } catch (error) {
-                        console.error('Ошибка экспорта:', error);
-                        this.showMessage('Ошибка при экспорте данных', false);
-                    }
-                },
-
-                goToLogin() {
-                    // Переход на страницу входа
-                    window.location.href = 'login.html';
-                },
-
                 showMessage(text, success) {
                     this.message.text = text;
                     this.message.success = success;
-
-                    if (success) {
-                        setTimeout(() => {
-                            this.message.text = '';
-                        }, 5000);
-                    }
                 },
 
-                resetForm() {
-                    this.form.name = '';
-                    this.form.email = '';
-                    this.form.password = '';
-                    this.errors.name = '';
-                    this.errors.email = '';
-                    this.errors.password = '';
+                goToLogin() {
+                    window.location.href = 'login.html';
                 }
             }
         }).mount('#app');

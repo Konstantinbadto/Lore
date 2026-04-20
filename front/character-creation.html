@@ -572,7 +572,6 @@
 </head>
 <body>
     <div id="app">
-        <!-- Хедер -->
         <header class="header">
             <div class="header-content">
                 <div class="logo">
@@ -580,93 +579,62 @@
                     <span class="subtitle">Создание Героя</span>
                 </div>
                 <div class="progress-indicator">
-                    <div class="progress-step active">1</div>
+                    <div class="progress-step" :class="{ 'active': currentStep >= 1 }">1</div>
                     <div class="progress-step" :class="{ 'active': currentStep >= 2 }">2</div>
                     <div class="progress-step" :class="{ 'active': currentStep >= 3 }">3</div>
                     <div class="progress-step" :class="{ 'active': currentStep >= 4 }">4</div>
                 </div>
             </div>
         </header>
-
-        <!-- Основной контент -->
+<!-- Новая кнопка "Выбрать существующего персонажа" -->
+                <div class="form-group" style="margin-bottom: 30px;">
+                    <button @click="goToCharacterSheet" class="action-btn secondary full-width">
+                        <i class="fas fa-user"></i>
+                        Выбрать существующего персонажа
+                    </button>
         <main class="main-content">
-            <!-- Шаг 1: Основная информация -->
+            <!-- Шаг 1 -->
             <div class="creation-step" v-if="currentStep === 1">
                 <h2 class="step-title">Имя и Внешность</h2>
                 <div class="step-content">
                     <div class="form-section">
                         <div class="form-group">
-                            <label for="characterName">Имя Персонажа *</label>
-                            <input
-                                type="text"
-                                id="characterName"
-                                v-model="character.name"
-                                class="form-control"
-                                placeholder="Введите имя вашего героя"
-                                maxlength="50"
-                            >
+                            <label>Имя Персонажа *</label>
+                            <input type="text" v-model="character.name" class="form-control" placeholder="Введите имя вашего героя" maxlength="50">
                         </div>
-
                         <div class="form-group">
-                            <label for="characterRace">Раса *</label>
-                            <select id="characterRace" v-model="character.race" class="form-control">
+                            <label>Раса *</label>
+                            <select v-model="character.race" class="form-control">
                                 <option value="">Выберите расу</option>
-                                <option v-for="race in races" :value="race.value" :key="race.value">
-                                    {{ race.name }}
-                                </option>
+                                <option v-for="race in races" :value="race.value" :key="race.value">{{ race.name }}</option>
                             </select>
                             <div class="race-description" v-if="selectedRaceInfo">
                                 <h4>{{ selectedRaceInfo.name }}</h4>
                                 <p>{{ selectedRaceInfo.description }}</p>
-                                <div class="race-bonuses">
-                                    <span v-for="bonus in selectedRaceInfo.abilityBonuses" :key="bonus.ability"
-                                          class="bonus-tag">
-                                        {{ getAbilityName(bonus.ability) }} +{{ bonus.bonus }}
-                                    </span>
-                                </div>
                             </div>
                         </div>
-
                         <div class="form-group">
-                            <label for="characterClass">Класс *</label>
-                            <select id="characterClass" v-model="character.class" class="form-control">
+                            <label>Класс *</label>
+                            <select v-model="character.class" class="form-control">
                                 <option value="">Выберите класс</option>
-                                <option v-for="classObj in classes" :value="classObj.value" :key="classObj.value">
-                                    {{ classObj.name }}
-                                </option>
+                                <option v-for="cls in classes" :value="cls.value" :key="cls.value">{{ cls.name }}</option>
                             </select>
                         </div>
-
                         <div class="form-group">
-                            <label for="characterBackground">Предыстория</label>
-                            <select id="characterBackground" v-model="character.background" class="form-control">
+                            <label>Предыстория</label>
+                            <select v-model="character.background" class="form-control">
                                 <option value="">Выберите предысторию</option>
-                                <option v-for="bg in backgrounds" :value="bg.value" :key="bg.value">
-                                    {{ bg.name }}
-                                </option>
+                                <option v-for="bg in backgrounds" :value="bg.value" :key="bg.value">{{ bg.name }}</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="character-preview">
                         <div class="preview-card">
-                            <div class="preview-header">
-                                <h3>Предпросмотр</h3>
-                            </div>
-                            <div class="preview-content">
-                                <div class="preview-field" v-if="character.name">
-                                    <strong>Имя:</strong> {{ character.name }}
-                                </div>
-                                <div class="preview-field" v-if="character.race">
-                                    <strong>Раса:</strong> {{ getRaceName(character.race) }}
-                                </div>
-                                <div class="preview-field" v-if="character.class">
-                                    <strong>Класс:</strong> {{ getClassName(character.class) }}
-                                </div>
-                                <div class="preview-field" v-if="character.background">
-                                    <strong>Предыстория:</strong> {{ getBackgroundName(character.background) }}
-                                </div>
-                            </div>
+                            <h3>Предпросмотр</h3>
+                            <p><strong>Имя:</strong> {{ character.name || '—' }}</p>
+                            <p><strong>Раса:</strong> {{ getRaceName(character.race) || '—' }}</p>
+                            <p><strong>Класс:</strong> {{ getClassName(character.class) || '—' }}</p>
                         </div>
                     </div>
                 </div>
@@ -676,7 +644,7 @@
             <div class="creation-step" v-if="currentStep === 2">
                 <h2 class="step-title">Характеристики</h2>
                 <div class="stats-info">
-                    <p>Распределите очки характеристик (27 очков). Минимум 8, максимум 15 до расовых бонусов.</p>
+                    <p>Распределите 27 очков. Минимум 8, максимум 15.</p>
                     <div class="points-remaining">
                         Очков осталось: <span class="points-count" :class="{ 'warning': pointsLeft < 5 }">{{ pointsLeft }}</span>
                     </div>
@@ -688,113 +656,40 @@
                             <span class="ability-abbr">{{ ability.abbr }}</span>
                         </div>
                         <div class="ability-controls">
-                            <button class="control-btn" @click="decreaseAbility(ability.value)"
-                                    :disabled="character.abilities[ability.value] <= 8">
-                                <i class="fas fa-minus"></i>
-                            </button>
+                            <button class="control-btn" @click="decreaseAbility(ability.value)" :disabled="character.abilities[ability.value] <= 8">-</button>
                             <span class="ability-score">{{ character.abilities[ability.value] }}</span>
-                            <button class="control-btn" @click="increaseAbility(ability.value)"
-                                    :disabled="character.abilities[ability.value] >= 15 || pointsLeft <= 0">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                        <div class="ability-modifier">
-                            Модификатор: <span :class="{ 'positive': getModifier(character.abilities[ability.value]) > 0, 'negative': getModifier(character.abilities[ability.value]) < 0 }">
-                                {{ formatModifier(getModifier(character.abilities[ability.value])) }}
-                            </span>
-                        </div>
-                        <div class="ability-cost">
-                            Стоимость: {{ getPointCost(character.abilities[ability.value]) }}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="racial-bonuses" v-if="selectedRaceInfo && selectedRaceInfo.abilityBonuses.length > 0">
-                    <h4>Рacial Бонусы</h4>
-                    <div class="bonuses-list">
-                        <div v-for="bonus in selectedRaceInfo.abilityBonuses" :key="bonus.ability" class="bonus-item">
-                            {{ getAbilityName(bonus.ability) }} +{{ bonus.bonus }}
+                            <button class="control-btn" @click="increaseAbility(ability.value)" :disabled="character.abilities[ability.value] >= 15 || pointsLeft <= 0">+</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Шаг 3: Навыки и умения -->
+            <!-- Шаг 3: Навыки -->
             <div class="creation-step" v-if="currentStep === 3">
-                <h2 class="step-title">Навыки и Умения</h2>
+                <h2 class="step-title">Навыки</h2>
                 <div class="skills-section">
-                    <h4>Владение Навыками</h4>
-                    <p>Выберите навыки, которыми владеет ваш персонаж (количество зависит от класса и интеллекта)</p>
-
+                    <h4>Выберите навыки</h4>
                     <div class="skills-grid">
-                        <div class="skill-item" v-for="skill in skills" :key="skill.value">
-                            <label class="skill-checkbox">
-                                <input type="checkbox"
-                                       v-model="character.skills"
-                                       :value="skill.value"
-                                       :disabled="!canSelectMoreSkills && !character.skills.includes(skill.value)">
-                                <span class="checkmark"></span>
-                                {{ skill.name }} <small>({{ getAbilityAbbr(skill.ability) }})</small>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="skills-info">
-                        Выбрано навыков: {{ character.skills.length }} / {{ maxSkills }}
+                        <label class="skill-checkbox" v-for="skill in skills" :key="skill.value">
+                            <input type="checkbox" v-model="character.skills" :value="skill.value">
+                            <span class="checkmark"></span>
+                            {{ skill.name }}
+                        </label>
                     </div>
                 </div>
             </div>
 
-            <!-- Шаг 4: Подтверждение -->
+            <!-- Шаг 4: Сводка -->
             <div class="creation-step" v-if="currentStep === 4">
                 <h2 class="step-title">Сводка Персонажа</h2>
-                <div class="character-summary">
-                    <div class="summary-card">
-                        <div class="summary-header">
-                            <h3>{{ character.name || 'Безымянный Герой' }}</h3>
-                            <span class="level-tag">Уровень 1</span>
-                        </div>
-
-                        <div class="summary-content">
-                            <div class="summary-row">
-                                <div class="summary-item">
-                                    <strong>Раса:</strong> {{ getRaceName(character.race) }}
-                                </div>
-                                <div class="summary-item">
-                                    <strong>Класс:</strong> {{ getClassName(character.class) }}
-                                </div>
-                                <div class="summary-item" v-if="character.background">
-                                    <strong>Предыстория:</strong> {{ getBackgroundName(character.background) }}
-                                </div>
-                            </div>
-
-                            <div class="abilities-summary">
-                                <h4>Характеристики (с расовыми бонусами)</h4>
-                                <div class="abilities-list">
-                                    <div v-for="ability in abilities" :key="ability.value" class="ability-summary">
-                                        <span class="ability-name">{{ ability.abbr }}</span>
-                                        <span class="ability-final-score">{{ getFinalAbilityScore(ability.value) }}</span>
-                                        <span class="ability-modifier" :class="{ 'positive': getFinalModifier(ability.value) > 0, 'negative': getFinalModifier(ability.value) < 0 }">
-                                            {{ formatModifier(getFinalModifier(ability.value)) }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="skills-summary" v-if="character.skills.length > 0">
-                                <h4>Владение Навыками</h4>
-                                <div class="skills-tags">
-                                    <span v-for="skillValue in character.skills" :key="skillValue" class="skill-tag">
-                                        {{ getSkillName(skillValue) }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="summary-card">
+                    <h3>{{ character.name || 'Безымянный Герой' }}</h3>
+                    <p><strong>Раса:</strong> {{ getRaceName(character.race) }}</p>
+                    <p><strong>Класс:</strong> {{ getClassName(character.class) }}</p>
+                    <p><strong>Уровень:</strong> 1</p>
                 </div>
             </div>
 
-            <!-- Навигация -->
             <div class="navigation-buttons">
                 <button class="nav-btn secondary" @click="previousStep" v-if="currentStep > 1">
                     <i class="fas fa-arrow-left"></i> Назад
@@ -802,37 +697,25 @@
                 <button class="nav-btn primary" @click="nextStep" v-if="currentStep < 4">
                     Далее <i class="fas fa-arrow-right"></i>
                 </button>
-                <button class="nav-btn success" @click="createCharacter" v-if="currentStep === 4">
-                    <i class="fas fa-dice-d20"></i> Создать Персонажа!
+                <button class="nav-btn success" @click="createCharacter" v-if="currentStep === 4" :disabled="loading">
+                    <i class="fas fa-dice-d20"></i> {{ loading ? 'Создание...' : 'Создать Персонажа!' }}
                 </button>
             </div>
         </main>
 
-        <!-- Модальное окно успешного создания -->
+        <!-- Модальное окно успеха -->
         <div class="success-modal" :class="{ 'active': showSuccessModal }">
             <div class="modal-content">
-                <div class="modal-icon">
-                    <i class="fas fa-crown"></i>
-                </div>
+                <div class="modal-icon"><i class="fas fa-crown"></i></div>
                 <h2 class="modal-title">Персонаж Создан!</h2>
-                <p class="modal-text">
-                    Ваш персонаж <strong>{{ character.name }}</strong> успешно создан!<br>
-                    Теперь вы можете присоединиться к кампании или создать свою собственную.
-                </p>
+                <p class="modal-text">Ваш герой <strong>{{ character.name }}</strong> готов к приключениям!</p>
                 <div class="modal-buttons">
-                    <button class="modal-btn secondary" @click="goToCharacterSheet">
-                        <i class="fas fa-scroll"></i>
-                        Лист персонажа
-                    </button>
-                    <button class="modal-btn primary" @click="goToCampaignChoice">
-                        <i class="fas fa-dragon"></i>
-                        Выбрать Кампанию
-                    </button>
+                    <button class="modal-btn secondary" @click="goToCharacterSheet">Лист персонажа</button>
+                    <button class="modal-btn primary" @click="goToCampaigns">Найти Кампанию</button>
                 </div>
             </div>
         </div>
 
-        <!-- Уведомления -->
         <div class="message" :class="{ 'success': message.success, 'error': !message.success }" v-if="message.text">
             {{ message.text }}
         </div>
@@ -845,35 +728,30 @@
             data() {
                 return {
                     currentStep: 1,
+                    loading: false,
                     character: {
                         name: '',
                         race: '',
                         class: '',
                         background: '',
                         abilities: {
-                            strength: 8,
-                            dexterity: 8,
-                            constitution: 8,
-                            intelligence: 8,
-                            wisdom: 8,
-                            charisma: 8
+                            strength: 8, dexterity: 8, constitution: 8,
+                            intelligence: 8, wisdom: 8, charisma: 8
                         },
                         skills: []
                     },
-                    message: {
-                        text: '',
-                        success: false
-                    },
+                    message: { text: '', success: false },
                     showSuccessModal: false,
+
                     races: [
-                        { value: 'human', name: 'Человек', description: 'Адаптивные и амбициозные', abilityBonuses: [{ ability: 'strength', bonus: 1 }, { ability: 'dexterity', bonus: 1 }, { ability: 'constitution', bonus: 1 }, { ability: 'intelligence', bonus: 1 }, { ability: 'wisdom', bonus: 1 }, { ability: 'charisma', bonus: 1 }] },
-                        { value: 'elf', name: 'Эльф', description: 'Грациозные и долгоживущие', abilityBonuses: [{ ability: 'dexterity', bonus: 2 }] },
-                        { value: 'dwarf', name: 'Дварф', description: 'Выносливые и упрямые', abilityBonuses: [{ ability: 'constitution', bonus: 2 }] },
-                        { value: 'halfling', name: 'Халфлинг', description: 'Везучие и проворные', abilityBonuses: [{ ability: 'dexterity', bonus: 2 }] }
+                        { value: 'human', name: 'Человек', description: 'Адаптивные и амбициозные' },
+                        { value: 'elf', name: 'Эльф', description: 'Грациозные и долгоживущие' },
+                        { value: 'dwarf', name: 'Дварф', description: 'Выносливые и упрямые' },
+                        { value: 'halfling', name: 'Халфлинг', description: 'Везучие и проворные' }
                     ],
                     classes: [
-                        { value: 'warrior', name: 'Воин' },
-                        { value: 'mage', name: 'Маг' },
+                        { value: 'fighter', name: 'Воин' },
+                        { value: 'wizard', name: 'Маг' },
                         { value: 'rogue', name: 'Плут' },
                         { value: 'cleric', name: 'Жрец' }
                     ],
@@ -892,71 +770,38 @@
                         { value: 'charisma', name: 'Харизма', abbr: 'ХАР' }
                     ],
                     skills: [
-                        { value: 'acrobatics', name: 'Акробатика', ability: 'dexterity' },
-                        { value: 'arcana', name: 'Магия', ability: 'intelligence' },
-                        { value: 'athletics', name: 'Атлетика', ability: 'strength' },
-                        { value: 'deception', name: 'Обман', ability: 'charisma' },
-                        { value: 'history', name: 'История', ability: 'intelligence' },
-                        { value: 'insight', name: 'Проницательность', ability: 'wisdom' },
-                        { value: 'intimidation', name: 'Запугивание', ability: 'charisma' },
-                        { value: 'investigation', name: 'Расследование', ability: 'intelligence' },
-                        { value: 'medicine', name: 'Медицина', ability: 'wisdom' },
-                        { value: 'nature', name: 'Природа', ability: 'intelligence' },
-                        { value: 'perception', name: 'Внимательность', ability: 'wisdom' },
-                        { value: 'performance', name: 'Выступление', ability: 'charisma' },
-                        { value: 'persuasion', name: 'Убеждение', ability: 'charisma' },
-                        { value: 'religion', name: 'Религия', ability: 'intelligence' },
-                        { value: 'sleight_of_hand', name: 'Ловкость рук', ability: 'dexterity' },
-                        { value: 'stealth', name: 'Скрытность', ability: 'dexterity' },
-                        { value: 'survival', name: 'Выживание', ability: 'wisdom' }
+                        { value: 'acrobatics', name: 'Акробатика' },
+                        { value: 'athletics', name: 'Атлетика' },
+                        { value: 'perception', name: 'Внимательность' },
+                        { value: 'persuasion', name: 'Убеждение' }
                     ]
                 };
             },
             computed: {
                 selectedRaceInfo() {
-                    return this.races.find(race => race.value === this.character.race);
+                    return this.races.find(r => r.value === this.character.race);
                 },
                 pointsLeft() {
-                    const totalPoints = Object.values(this.character.abilities).reduce((sum, score) => {
-                        return sum + this.getPointCost(score);
-                    }, 0);
-                    return 27 - totalPoints;
-                },
-                maxSkills() {
-                    // Базовое количество навыков + бонус за интеллект
-                    const baseSkills = 2;
-                    const intBonus = Math.max(0, Math.floor((this.getFinalAbilityScore('intelligence') - 10) / 2));
-                    return baseSkills + intBonus;
-                },
-                canSelectMoreSkills() {
-                    return this.character.skills.length < this.maxSkills;
+                    let spent = 0;
+                    Object.values(this.character.abilities).forEach(score => {
+                        const cost = [0,1,2,3,4,5,7,9][score-8] || 0;
+                        spent += cost;
+                    });
+                    return 27 - spent;
                 }
             },
             methods: {
-                // Навигация
                 nextStep() {
-                    if (this.validateCurrentStep()) {
-                        this.currentStep++;
+                    if (this.currentStep === 1 && (!this.character.name || !this.character.race || !this.character.class)) {
+                        this.showMessage('Заполните обязательные поля', false);
+                        return;
                     }
+                    this.currentStep++;
                 },
                 previousStep() {
                     this.currentStep--;
                 },
-                validateCurrentStep() {
-                    if (this.currentStep === 1) {
-                        if (!this.character.name || !this.character.race || !this.character.class) {
-                            this.showMessage('Пожалуйста, заполните все обязательные поля', false);
-                            return false;
-                        }
-                    } else if (this.currentStep === 2) {
-                        if (this.pointsLeft !== 0) {
-                            this.showMessage('Пожалуйста, распределите все очки характеристик', false);
-                            return false;
-                        }
-                    }
-                    return true;
-                },
-                // Управление характеристиками
+
                 increaseAbility(ability) {
                     if (this.character.abilities[ability] < 15 && this.pointsLeft > 0) {
                         this.character.abilities[ability]++;
@@ -967,108 +812,95 @@
                         this.character.abilities[ability]--;
                     }
                 },
-                getPointCost(score) {
-                    const costTable = {8:0, 9:1, 10:2, 11:3, 12:4, 13:5, 14:7, 15:9};
-                    return costTable[score] || 0;
-                },
-                getModifier(score) {
-                    return Math.floor((score - 10) / 2);
-                },
-                formatModifier(modifier) {
-                    return modifier >= 0 ? `+${modifier}` : modifier.toString();
-                },
-                // Получение финальных значений с учетом бонусов
-                getFinalAbilityScore(ability) {
-                    const baseScore = this.character.abilities[ability];
-                    const raceBonus = this.selectedRaceInfo ?
-                        this.selectedRaceInfo.abilityBonuses.find(bonus => bonus.ability === ability)?.bonus || 0 : 0;
-                    return baseScore + raceBonus;
-                },
-                getFinalModifier(ability) {
-                    return this.getModifier(this.getFinalAbilityScore(ability));
-                },
-                // Вспомогательные методы для отображения
-                getRaceName(raceValue) {
-                    const race = this.races.find(r => r.value === raceValue);
-                    return race ? race.name : '';
-                },
-                getClassName(classValue) {
-                    const classObj = this.classes.find(c => c.value === classValue);
-                    return classObj ? classObj.name : '';
-                },
-                getBackgroundName(bgValue) {
-                    const bg = this.backgrounds.find(b => b.value === bgValue);
-                    return bg ? bg.name : '';
-                },
-                getAbilityName(abilityValue) {
-                    const ability = this.abilities.find(a => a.value === abilityValue);
-                    return ability ? ability.name : '';
-                },
-                getAbilityAbbr(abilityValue) {
-                    const ability = this.abilities.find(a => a.value === abilityValue);
-                    return ability ? ability.abbr : '';
-                },
-                getSkillName(skillValue) {
-                    const skill = this.skills.find(s => s.value === skillValue);
-                    return skill ? skill.name : '';
-                },
-                // Создание персонажа
-                createCharacter() {
-                    try {
-                        // Получаем текущего пользователя
-                        const currentUser = JSON.parse(localStorage.getItem('current_user') || '{}');
 
-                        // Создаем объект персонажа
-                        const characterData = {
-                            id: Date.now(),
-                            userId: currentUser.id,
-                            ...this.character,
-                            created_at: new Date().toISOString(),
-                            level: 1,
-                            experience: 0
-                        };
+                async createCharacter() {
+    if (!this.character.name || !this.character.race || !this.character.class) {
+        this.showMessage('Пожалуйста, заполните имя, расу и класс персонажа', false);
+        return;
+    }
 
-                        // Сохраняем персонажа в localStorage
-                        const characters = JSON.parse(localStorage.getItem('dnd_characters') || '[]');
-                        characters.push(characterData);
-                        localStorage.setItem('dnd_characters', JSON.stringify(characters));
+    this.loading = true;
 
-                        // Обновляем текущего пользователя
-                        currentUser.character = characterData;
-                        localStorage.setItem('current_user', JSON.stringify(currentUser));
+    const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+    if (!token) {
+        this.showMessage('Вы не авторизованы. Пожалуйста, войдите заново.', false);
+        setTimeout(() => window.location.href = 'login.html', 1500);
+        this.loading = false;
+        return;
+    }
 
-                        // Показываем модальное окно успеха
-                        this.showSuccessModal = true;
+    // Подготовка данных точно под твой бэкенд
+    const payload = {
+        name: this.character.name.trim(),
+        race: this.character.race,
+        class: this.character.class,                    // оставляем "class"
+        background: this.character.background ? this.character.background.trim() : null,
+        level: 1,
+        strength: this.character.abilities.strength,
+        dexterity: this.character.abilities.dexterity,
+        constitution: this.character.abilities.constitution,
+        intelligence: this.character.abilities.intelligence,
+        wisdom: this.character.abilities.wisdom,
+        charisma: this.character.abilities.charisma
+    };
 
-                    } catch (error) {
-                        console.error('Ошибка создания персонажа:', error);
-                        this.showMessage('Ошибка при создании персонажа', false);
-                    }
-                },
-                // Переход на страницу выбора кампаний
-                goToCampaignChoice() {
-                    window.location.href = 'choice.html';
-                },
-                // Переход на лист персонажа
-                goToCharacterSheet() {
-                    window.location.href = 'character-sheet.html';
-                },
+    try {
+        const res = await fetch('http://localhost:3307/api/characters', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+            this.showMessage('Персонаж успешно создан!', true);
+            this.showSuccessModal = true;
+
+            if (result.characterId) {
+                localStorage.setItem('last_created_character_id', result.characterId);
+            }
+        } else {
+            this.showMessage(result.error || 'Ошибка при создании персонажа', false);
+        }
+    } catch (err) {
+        console.error('Create character error:', err);
+        this.showMessage('Не удалось подключиться к серверу. Проверьте, запущен ли сервер на порту 3307.', false);
+    } finally {
+        this.loading = false;
+    }
+},
+
                 showMessage(text, success) {
                     this.message.text = text;
                     this.message.success = success;
-                    setTimeout(() => {
-                        this.message.text = '';
-                    }, 4000);
+                    setTimeout(() => this.message.text = '', 5000);
+                },
+
+                getRaceName(val) {
+                    const race = this.races.find(r => r.value === val);
+                    return race ? race.name : '';
+                },
+                getClassName(val) {
+                    const cls = this.classes.find(c => c.value === val);
+                    return cls ? cls.name : '';
+                },
+
+                goToCharacterSheet() {
+                    window.location.href = 'character-sheet.html';
+                },
+                goToCampaigns() {
+                    window.location.href = 'campaigns.html';
                 }
             },
             mounted() {
-                // Проверяем, авторизован ли пользователь
-                const currentUser = localStorage.getItem('current_user');
-                if (!currentUser) {
+                const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+                if (!token) {
                     this.showMessage('Пожалуйста, войдите в систему', false);
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 2000);
+                    setTimeout(() => window.location.href = 'login.html', 2000);
                 }
             }
         }).mount('#app');

@@ -430,3 +430,34 @@ body::before {
         align-self: flex-end;
     }
 }
+/* Добавь или замени эти блоки в конце твоего style-login.css */
+
+.login-form {
+    max-width: 420px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.form-title {
+    text-align: center;
+    margin-bottom: 40px;     /* увеличил отступ снизу заголовка */
+    color: #9c27b0;
+    font-size: 1.95rem;
+}
+
+.form-group {
+    margin-bottom: 32px;     /* увеличил расстояние между полями */
+}
+
+.register-link {
+    text-align: center;
+    margin-top: 35px;        /* отступ сверху ссылки */
+    padding-top: 25px;
+    border-top: 1px solid #4a148c;
+    color: #ba68c8;
+}
+
+.submit-btn {
+    margin-top: 10px;
+    margin-bottom: 15px;
+}

@@ -55,7 +55,25 @@
                         <i class="fas fa-dragon"></i>
                         Создать Новую Кампанию
                     </h2>
+<div class="form-section">
+    <h3 class="section-title">
+        <i class="fas fa-scroll"></i> Выберите кампанию для редактирования
+    </h3>
 
+    <div class="form-group">
+        <select v-model="selectedCampaignId" class="form-control" @change="loadCampaignForEdit">
+            <option value="">— Создать новую кампанию —</option>
+            <option v-for="camp in myCampaigns" :key="camp.id" :value="camp.id">
+                {{ camp.name }} ({{ camp.status }}) — {{ camp.created_at | date }}
+            </option>
+        </select>
+    </div>
+
+    <!-- Кнопка, которая переводит на страницу со всеми кампаниями -->
+    <button @click="goToMyCampaigns" class="action-btn secondary">
+        <i class="fas fa-list"></i> Посмотреть все мои кампании
+    </button>
+</div>
                     <!-- Основная информация -->
                     <div class="form-section">
                         <h3 class="section-title">Основная Информация</h3>
@@ -328,242 +346,267 @@
     </div>
 
     <script>
-        const { createApp } = Vue;
+    const { createApp } = Vue;
+    const API_BASE = 'http://localhost:3307';   // ←←← твой бэкенд
 
-        createApp({
-            data() {
-                return {
-                    masterName: 'Мастер',
-                    showUserMenu: false,
-                    campaign: {
-                        name: '',
-                        setting: '',
-                        customSetting: '',
-                        plot: '',
-                        tone: '',
-                        maxPlayers: 4,
-                        startingLevel: '1',
-                        allowHomebrew: false,
-                        allowMulticlass: true,
-                        sessionFrequency: 'weekly',
-                        difficulty: 'medium'
-                    },
-                    message: {
-                        text: '',
-                        success: false
-                    },
-                    tones: [
-                        { value: 'heroic', name: 'Героический', description: 'Эпические подвиги и благородные цели', icon: 'fas fa-shield-alt' },
-                        { value: 'dark', name: 'Тёмный', description: 'Мрачная атмосфера и сложные моральные выборы', icon: 'fas fa-moon' },
-                        { value: 'humorous', name: 'Юмористический', description: 'Весёлые приключения и комедийные ситуации', icon: 'fas fa-laugh' },
-                        { value: 'mysterious', name: 'Загадочный', description: 'Тайны, заговоры и неожиданные повороты', icon: 'fas fa-question' }
-                    ]
-                };
+    createApp({
+        data() {
+            return {
+                masterName: 'Мастер',
+                showUserMenu: false,
+                loading: false,
+                myCampaigns: [],           // Список моих кампаний
+                selectedCampaignId: '',    // Выбранная кампания для редактирования
+
+                campaign: {
+                    name: '',
+                    setting: '',
+                    customSetting: '',
+                    plot: '',
+                    tone: '',
+                    maxPlayers: 4,
+                    startingLevel: '1',
+                    allowHomebrew: false,
+                    allowMulticlass: true,
+                    sessionFrequency: 'weekly',
+                    difficulty: 'medium'
+                },
+                message: { text: '', success: true },
+                tones: [
+                    { value: 'heroic', name: 'Героический', description: 'Эпические подвиги и благородные цели', icon: 'fas fa-shield-alt' },
+                    { value: 'dark', name: 'Тёмный', description: 'Мрачная атмосфера и сложные моральные выборы', icon: 'fas fa-moon' },
+                    { value: 'humorous', name: 'Юмористический', description: 'Весёлые приключения и комедийные ситуации', icon: 'fas fa-laugh' },
+                    { value: 'mysterious', name: 'Загадочный', description: 'Тайны, заговоры и неожиданные повороты', icon: 'fas fa-question' }
+                ]
+            };
+        },
+
+        computed: {
+            completionPercentage() {
+                let filled = 0, total = 3;
+                if (this.campaign.name?.trim()) filled++;
+                if (this.campaign.setting) filled++;
+                if (this.campaign.plot?.trim()) filled++;
+                return Math.round((filled / total) * 100);
             },
-            computed: {
-                completionPercentage() {
-                    let filled = 0;
-                    let total = 0;
-
-                    // Проверяем обязательные поля
-                    if (this.campaign.name) filled++;
-                    total++;
-
-                    if (this.campaign.setting) filled++;
-                    total++;
-
-                    if (this.campaign.plot) filled++;
-                    total++;
-
-                    return Math.round((filled / total) * 100);
-                },
-                canCreate() {
-                    return this.campaign.name &&
-                           this.campaign.setting &&
-                           this.campaign.plot &&
-                           this.completionPercentage === 100;
-                }
-            },
-            methods: {
-                // Получение данных пользователя
-                getUserData() {
-                    try {
-                        const userData = localStorage.getItem('current_user');
-                        if (userData) {
-                            const user = JSON.parse(userData);
-                            this.masterName = user.username || 'Мастер';
-                            console.log('👑 Загружен мастер:', user);
-                        } else {
-                            console.log('❌ Пользователь не найден');
-                            setTimeout(() => {
-                                window.location.href = 'login.html';
-                            }, 2000);
-                        }
-                    } catch (error) {
-                        console.error('❌ Ошибка загрузки пользователя:', error);
-                    }
-                },
-
-                // Управление количеством игроков
-                increasePlayers() {
-                    if (this.campaign.maxPlayers < 6) {
-                        this.campaign.maxPlayers++;
-                    }
-                },
-                decreasePlayers() {
-                    if (this.campaign.maxPlayers > 3) {
-                        this.campaign.maxPlayers--;
-                    }
-                },
-
-                // Вспомогательные методы для отображения
-                getSettingName(settingValue) {
-                    const settings = {
-                        'forgotten-realms': 'Забытые Королевства',
-                        'eberron': 'Эберрон',
-                        'ravenloft': 'Равенлофт',
-                        'dark-sun': 'Тёмное Солнце',
-                        'planescape': 'Планарные странствия',
-                        'spelljammer': 'Заклинательный Летун',
-                        'custom': this.campaign.customSetting || 'Свой сеттинг'
-                    };
-                    return settings[settingValue] || settingValue;
-                },
-                getToneName(toneValue) {
-                    const tone = this.tones.find(t => t.value === toneValue);
-                    return tone ? tone.name : '';
-                },
-                getFrequencyName(frequency) {
-                    const frequencies = {
-                        'weekly': 'Еженедельно',
-                        'biweekly': 'Раз в две недели',
-                        'monthly': 'Ежемесячно',
-                        'flexible': 'Гибкий график'
-                    };
-                    return frequencies[frequency] || frequency;
-                },
-                getDifficultyName(difficulty) {
-                    const difficulties = {
-                        'easy': 'Лёгкая',
-                        'medium': 'Средняя',
-                        'hard': 'Сложная',
-                        'deadly': 'Смертельная'
-                    };
-                    return difficulties[difficulty] || difficulty;
-                },
-                getDifficultyClass(difficulty) {
-                    return `difficulty-${difficulty}`;
-                },
-
-                // Сохранение черновика
-                saveDraft() {
-                    try {
-                        const draft = {
-                            ...this.campaign,
-                            saved_at: new Date().toISOString(),
-                            is_draft: true
-                        };
-
-                        localStorage.setItem('campaign_draft', JSON.stringify(draft));
-                        this.showMessage('Черновик сохранен!', true);
-                    } catch (error) {
-                        console.error('❌ Ошибка сохранения черновика:', error);
-                        this.showMessage('Ошибка сохранения черновика', false);
-                    }
-                },
-
-                // Создание кампании
-                createCampaign() {
-                    try {
-                        // Получаем текущего пользователя
-                        const currentUser = JSON.parse(localStorage.getItem('current_user') || '{}');
-
-                        // Создаем объект кампании
-                        const campaignData = {
-                            id: Date.now(),
-                            master_id: currentUser.id,
-                            master_name: this.masterName,
-                            ...this.campaign,
-                            status: 'recruiting',
-                            current_players: 0,
-                            created_at: new Date().toISOString(),
-                            players: []
-                        };
-
-                        // Сохраняем кампанию в localStorage
-                        const campaigns = JSON.parse(localStorage.getItem('dnd_campaigns') || '[]');
-                        campaigns.push(campaignData);
-                        localStorage.setItem('dnd_campaigns', JSON.stringify(campaigns));
-
-                        // Обновляем текущего пользователя
-                        currentUser.campaigns = currentUser.campaigns || [];
-                        currentUser.campaigns.push(campaignData.id);
-                        localStorage.setItem('current_user', JSON.stringify(currentUser));
-
-                        // Очищаем черновик
-                        localStorage.removeItem('campaign_draft');
-
-                        this.showMessage('Кампания успешно создана!', true);
-
-                        // Перенаправление на страницу кампании
-                        setTimeout(() => {
-                            window.location.href = 'game-hub.html' + campaignData.id;
-                        }, 2000);
-
-                    } catch (error) {
-                        console.error('❌ Ошибка создания кампании:', error);
-                        this.showMessage('Ошибка при создании кампании', false);
-                    }
-                },
-
-                // Загрузка черновика
-                loadDraft() {
-                    try {
-                        const draft = localStorage.getItem('campaign_draft');
-                        if (draft) {
-                            const draftData = JSON.parse(draft);
-                            this.campaign = { ...this.campaign, ...draftData };
-                            this.showMessage('Черновик загружен!', true);
-                        }
-                    } catch (error) {
-                        console.error('❌ Ошибка загрузки черновика:', error);
-                    }
-                },
-
-                // Выход из системы
-                logout() {
-                    localStorage.removeItem('current_user');
-                    localStorage.removeItem('auth_token');
-                    this.showMessage('Вы вышли из системы', true);
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 1500);
-                },
-
-                toggleUserMenu() {
-                    this.showUserMenu = !this.showUserMenu;
-                },
-
-                showMessage(text, success) {
-                    this.message.text = text;
-                    this.message.success = success;
-                    setTimeout(() => {
-                        this.message.text = '';
-                    }, 4000);
-                }
-            },
-            mounted() {
-                // Загружаем данные пользователя
-                this.getUserData();
-
-                // Пытаемся загрузить черновик
-                this.loadDraft();
-
-                // Проверяем существующие кампании
-                const campaigns = JSON.parse(localStorage.getItem('dnd_campaigns') || '[]');
-                console.log('🏰 Существующие кампании:', campaigns);
+            canCreate() {
+                return this.campaign.name?.trim() && this.campaign.setting && this.campaign.plot?.trim();
             }
-        }).mount('#app');
-    </script>
+        },
+
+        methods: {
+            goToMyCampaigns() {
+    window.location.href = 'my-campaigns.html';
+},
+            async getUserData() {
+                const token = localStorage.getItem('auth_token');
+                if (!token) return window.location.href = 'login.html';
+
+                try {
+                    const res = await fetch(`${API_BASE}/api/auth/me`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.masterName = data.user?.username || 'Мастер';
+                    } else {
+                        localStorage.removeItem('auth_token');
+                        window.location.href = 'login.html';
+                    }
+                } catch (e) {
+                    this.showMessage('Не удалось подключиться к серверу', false);
+                }
+            },
+            async loadMyCampaigns() {
+                const token = localStorage.getItem('auth_token');
+                if (!token) return;
+
+                try {
+                    const res = await fetch(`${API_BASE}/api/campaigns/my`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.myCampaigns = data.campaigns || [];
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            },
+
+            // Загрузка выбранной кампании для редактирования
+            async loadCampaignForEdit() {
+                if (!this.selectedCampaignId) return;
+
+                const token = localStorage.getItem('auth_token');
+                try {
+                    const res = await fetch(`${API_BASE}/api/campaigns/${this.selectedCampaignId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.campaign = {
+                            name: data.name,
+                            setting: data.setting,
+                            customSetting: data.custom_setting,
+                            plot: data.plot,
+                            tone: data.tone,
+                            maxPlayers: data.max_players,
+                            startingLevel: data.starting_level.toString(),
+                            allowHomebrew: !!data.allow_homebrew,
+                            allowMulticlass: !!data.allow_multiclass,
+                            sessionFrequency: data.session_frequency,
+                            difficulty: data.difficulty
+                        };
+                    }
+                } catch (e) {
+                    this.showMessage('Ошибка загрузки кампании', false);
+                }
+            },
+            async createCampaign() {
+    if (!this.canCreate) return;
+    this.loading = true;
+
+    const token = localStorage.getItem('auth_token');
+    if (!token) return window.location.href = 'login.html';
+
+    try {
+        const res = await fetch('http://localhost:3307/api/campaigns', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: this.campaign.name.trim(),
+                setting: this.campaign.setting,
+                custom_setting: this.campaign.customSetting?.trim() || null,
+                plot: this.campaign.plot.trim(),
+                tone: this.campaign.tone || null,
+                max_players: this.campaign.maxPlayers,
+                starting_level: parseInt(this.campaign.startingLevel),
+                allow_homebrew: this.campaign.allowHomebrew,
+                allow_multiclass: this.campaign.allowMulticlass,
+                session_frequency: this.campaign.sessionFrequency,
+                difficulty: this.campaign.difficulty
+            })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+    this.showMessage('✅ Кампания успешно создана!', true);
+
+    setTimeout(() => {
+        // ←←← ИСПРАВЛЕНО: передаём id новой кампании
+        window.location.href = `game-hub.html?id=${data.campaignId}`;
+    }, 1500);
+        } else {
+            this.showMessage(data.error || 'Ошибка создания кампании', false);
+        }
+    } catch (e) {
+        this.showMessage('Ошибка соединения с сервером', false);
+    } finally {
+        this.loading = false;
+    }
+
+},
+            // saveDraft тоже можно оставить, если нужно
+            async saveDraft() {
+                if (!this.canCreate) return;
+                this.loading = true;
+
+                const token = localStorage.getItem('auth_token');
+                if (!token) return window.location.href = 'login.html';
+
+                try {
+                    const res = await fetch(`${API_BASE}/api/campaigns`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            name: this.campaign.name.trim(),
+                            setting: this.campaign.setting,
+                            custom_setting: this.campaign.customSetting?.trim() || null,
+                            plot: this.campaign.plot.trim(),
+                            tone: this.campaign.tone || null,
+                            max_players: this.campaign.maxPlayers,
+                            starting_level: parseInt(this.campaign.startingLevel),
+                            allow_homebrew: this.campaign.allowHomebrew,
+                            allow_multiclass: this.campaign.allowMulticlass,
+                            session_frequency: this.campaign.sessionFrequency,
+                            difficulty: this.campaign.difficulty
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        this.showMessage('✅ Кампания успешно создана!', true);
+                        setTimeout(() => {
+                            window.location.href = `campaign.html?id=${data.campaignId}`;
+                        }, 1500);
+                    } else {
+                        this.showMessage(data.error || 'Ошибка создания', false);
+                    }
+                } catch (e) {
+                    this.showMessage('Ошибка соединения с сервером', false);
+                } finally {
+                    this.loading = false;
+                }
+                this.showMessage('Черновик сохранён (функция активна)', true);
+            },
+
+            increasePlayers() { if (this.campaign.maxPlayers < 6) this.campaign.maxPlayers++; },
+            decreasePlayers() { if (this.campaign.maxPlayers > 3) this.campaign.maxPlayers--; },
+
+            getSettingName(v) {
+                const map = {
+                    'forgotten-realms': 'Забытые Королевства',
+                    'eberron': 'Эберрон',
+                    'ravenloft': 'Равенлофт',
+                    'dark-sun': 'Тёмное Солнце',
+                    'planescape': 'Планарные странствия',
+                    'spelljammer': 'Заклинательный Летун',
+                    'custom': this.campaign.customSetting || 'Свой сеттинг'
+                };
+                return map[v] || v;
+            },
+            getToneName(v) {
+                const tone = this.tones.find(t => t.value === v);
+                return tone ? tone.name : '';
+            },
+            getFrequencyName(f) {
+                const map = { weekly: 'Еженедельно', biweekly: 'Раз в две недели', monthly: 'Ежемесячно', flexible: 'Гибкий график' };
+                return map[f] || f;
+            },
+            getDifficultyName(d) {
+                const map = { easy: 'Лёгкая', medium: 'Средняя', hard: 'Сложная', deadly: 'Смертельная' };
+                return map[d] || d;
+            },
+            getDifficultyClass(d) { return `difficulty-${d}`; },
+
+            logout() {
+                localStorage.removeItem('auth_token');
+                window.location.href = 'login.html';
+            },
+
+            toggleUserMenu() { this.showUserMenu = !this.showUserMenu; },
+
+            showMessage(text, success = true) {
+                this.message.text = text;
+                this.message.success = success;
+                setTimeout(() => this.message.text = '', 4000);
+            }
+        },
+
+        mounted() {
+            this.getUserData();
+        }
+    }).mount('#app');
+</script>
 </body>
 </html>

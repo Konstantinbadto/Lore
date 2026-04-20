@@ -509,64 +509,83 @@
                     </div>
                     <div class="dropdown-menu" v-if="showUserMenu">
                         <a href="dashboard.html" class="dropdown-item">
-                            <i class="fas fa-home"></i>
-                            Главная
+                            <i class="fas fa-home"></i> Главная
                         </a>
                         <a href="character-sheet.html" class="dropdown-item">
-                            <i class="fas fa-scroll"></i>
-                            Мой персонаж
+                            <i class="fas fa-scroll"></i> Мой персонаж
                         </a>
                         <a href="character-creation.html" class="dropdown-item">
-                            <i class="fas fa-user-plus"></i>
-                            Создать нового персонажа
+                            <i class="fas fa-user-plus"></i> Создать нового персонажа
                         </a>
                         <a href="campaign-creation.html" class="dropdown-item">
-                            <i class="fas fa-dragon"></i>
-                            Создать кампанию
+                            <i class="fas fa-dragon"></i> Создать кампанию
                         </a>
                         <a href="#" class="dropdown-item" @click="logout">
-                            <i class="fas fa-door-open"></i>
-                            Выйти
+                            <i class="fas fa-door-open"></i> Выйти
                         </a>
                     </div>
                 </div>
             </div>
         </header>
 
-        <!-- Основной контент -->
-        <main class="main-content">
-            <!-- Приветствие и информация о персонаже -->
-            <div class="welcome-section">
-                <h1 class="welcome-title">Добро пожаловать, {{ userName }}!</h1>
-                <p class="welcome-subtitle">Выберите кампанию для своего персонажа</p>
+               <!-- Карточка текущего персонажа (для выбора кампании) -->
+        <div class="character-card" v-if="currentCharacter">
+            <div class="character-header">
+                <h3 class="character-name">{{ currentCharacter.name || 'Без имени' }}</h3>
+                <span class="level-tag">Ур. {{ currentCharacter.level || 1 }}</span>
+            </div>
 
-                <div class="character-card" v-if="currentCharacter">
-                    <div class="character-header">
-                        <h3 class="character-name">{{ currentCharacter.name }}</h3>
-                        <span class="level-tag">Ур. {{ currentCharacter.level }}</span>
-                    </div>
-                    <div class="character-details">
-                        <div class="detail-item">
-                            <div class="detail-label">Раса</div>
-                            <div class="detail-value">{{ getRaceName(currentCharacter.race) }}</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Класс</div>
-                            <div class="detail-value">{{ getClassName(currentCharacter.class) }}</div>
-                        </div>
-                        <div class="detail-item" v-if="currentCharacter.background">
-                            <div class="detail-label">Предыстория</div>
-                            <div class="detail-value">{{ getBackgroundName(currentCharacter.background) }}</div>
-                        </div>
-                    </div>
-                    <div class="abilities-grid">
-                        <div class="ability-item" v-for="ability in abilities" :key="ability.value">
-                            <div class="ability-abbr">{{ ability.abbr }}</div>
-                            <div class="ability-score">{{ getFinalAbilityScore(ability.value) }}</div>
-                        </div>
-                    </div>
+            <div class="character-details">
+                <div class="detail-item">
+                    <div class="detail-label">Раса</div>
+                    <div class="detail-value">{{ getRaceName(currentCharacter.race) }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Класс</div>
+                    <div class="detail-value">{{ getClassName(currentCharacter.class) }}</div>
+                </div>
+                <div class="detail-item" v-if="currentCharacter.background">
+                    <div class="detail-label">Предыстория</div>
+                    <div class="detail-value">{{ getBackgroundName(currentCharacter.background) }}</div>
                 </div>
             </div>
+
+            <!-- Характеристики — напрямую из БД (как на твоём скриншоте) -->
+            <div class="abilities-grid">
+                <div class="ability-item">
+                    <div class="ability-abbr">СИЛ</div>
+                    <div class="ability-score">{{ currentCharacter.strength || 8 }}</div>
+                </div>
+                <div class="ability-item">
+                    <div class="ability-abbr">ЛВК</div>
+                    <div class="ability-score">{{ currentCharacter.dexterity || 8 }}</div>
+                </div>
+                <div class="ability-item">
+                    <div class="ability-abbr">ТЕЛ</div>
+                    <div class="ability-score">{{ currentCharacter.constitution || 8 }}</div>
+                </div>
+                <div class="ability-item">
+                    <div class="ability-abbr">ИНТ</div>
+                    <div class="ability-score">{{ currentCharacter.intelligence || 8 }}</div>
+                </div>
+                <div class="ability-item">
+                    <div class="ability-abbr">МДР</div>
+                    <div class="ability-score">{{ currentCharacter.wisdom || 8 }}</div>
+                </div>
+                <div class="ability-item">
+                    <div class="ability-abbr">ХАР</div>
+                    <div class="ability-score">{{ currentCharacter.charisma || 8 }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Если персонажа нет -->
+        <div class="no-character" v-else>
+            <p>Выберите или создайте персонажа, чтобы присоединяться к кампаниям</p>
+            <a href="character-creation.html" class="create-char-btn">
+                <i class="fas fa-user-plus"></i> Создать персонажа
+            </a>
+        </div>
 
             <!-- Фильтры -->
             <div class="filters-section">
@@ -619,11 +638,15 @@
                 </div>
 
                 <div class="campaigns-grid" v-else>
-                    <div class="campaign-card" v-for="campaign in filteredCampaigns" :key="campaign.id">
+                    <div class="campaign-card"
+                         v-for="campaign in filteredCampaigns"
+                         :key="campaign.id"
+                         @click="selectCampaign(campaign.id)">
+
                         <div class="campaign-header">
                             <div>
                                 <h3 class="campaign-title">{{ campaign.name }}</h3>
-                                <div class="campaign-master">Мастер: {{ campaign.master_name }}</div>
+                                <div class="campaign-master">Мастер: {{ campaign.master_name || 'Неизвестен' }}</div>
                             </div>
                             <div class="campaign-status" :class="getStatusClass(campaign)">
                                 {{ getStatusText(campaign) }}
@@ -635,7 +658,7 @@
                         </div>
 
                         <p class="campaign-description">
-                            {{ campaign.plot.substring(0, 150) }}{{ campaign.plot.length > 150 ? '...' : '' }}
+                            {{ campaign.plot ? campaign.plot.substring(0, 150) + (campaign.plot.length > 150 ? '...' : '') : 'Описание отсутствует' }}
                         </p>
 
                         <div class="campaign-tags">
@@ -645,7 +668,7 @@
                             <span class="campaign-tag">
                                 <i class="fas fa-theater-masks"></i> {{ getToneName(campaign.tone) }}
                             </span>
-                            <span class="campaign-tag" v-if="campaign.allowHomebrew">
+                            <span class="campaign-tag" v-if="campaign.allow_homebrew">
                                 <i class="fas fa-hammer"></i> Домашние правила
                             </span>
                         </div>
@@ -653,414 +676,241 @@
                         <div class="campaign-details">
                             <div class="players-info">
                                 <i class="fas fa-users"></i>
-                                <span class="players-count">{{ campaign.current_players || 0 }}/{{ campaign.maxPlayers }}</span>
+                                <span class="players-count">{{ campaign.current_players || 0 }}/{{ campaign.max_players || 4 }}</span>
                                 игроков
                             </div>
                             <div class="campaign-level">
-                                Ур. {{ campaign.startingLevel }}
+                                Ур. {{ campaign.starting_level || 1 }}
                             </div>
                         </div>
 
-                        <button class="join-btn"
-                                @click="joinCampaign(campaign)"
-                                :disabled="!canJoinCampaign(campaign)">
-                            <i class="fas fa-door-open"></i>
-                            {{ getJoinButtonText(campaign) }}
+                        <button class="join-btn" @click.stop="selectCampaign(campaign.id)">
+                            <i class="fas fa-door-open"></i> Присоединиться к кампании
                         </button>
                     </div>
                 </div>
 
                 <div class="no-campaigns" v-if="!loading && filteredCampaigns.length === 0">
-                    <div class="no-campaigns-icon">
-                        <i class="fas fa-dragon"></i>
-                    </div>
                     <h3>Кампании не найдены</h3>
-                    <p>Попробуйте изменить фильтры или создайте свою кампанию</p>
-                    <a href="campaign-creation.html" class="create-campaign-btn">
-                        <i class="fas fa-plus"></i> Создать Кампанию
-                    </a>
+                    <p>Попробуйте изменить фильтры</p>
                 </div>
             </div>
         </main>
 
-        <!-- Уведомления -->
         <div class="message" :class="{ 'success': message.success, 'error': !message.success }" v-if="message.text">
             {{ message.text }}
         </div>
     </div>
 
     <script>
-        const { createApp } = Vue;
+    const API_BASE = 'http://localhost:3307';   // ← Измени порт, если нужно
 
-        createApp({
-            data() {
-                return {
-                    userName: 'Игрок',
-                    showUserMenu: false,
-                    currentCharacter: null,
-                    campaigns: [],
-                    loading: true,
-                    message: {
-                        text: '',
-                        success: false
-                    },
-                    filters: {
-                        setting: '',
-                        level: '',
-                        status: ''
-                    },
-                    abilities: [
-                        { value: 'strength', name: 'Сила', abbr: 'СИЛ' },
-                        { value: 'dexterity', name: 'Ловкость', abbr: 'ЛВК' },
-                        { value: 'constitution', name: 'Телосложение', abbr: 'ТЕЛ' },
-                        { value: 'intelligence', name: 'Интеллект', abbr: 'ИНТ' },
-                        { value: 'wisdom', name: 'Мудрость', abbr: 'МДР' },
-                        { value: 'charisma', name: 'Харизма', abbr: 'ХАР' }
-                    ],
-                    races: [
-                        { value: 'human', name: 'Человек' },
-                        { value: 'elf', name: 'Эльф' },
-                        { value: 'dwarf', name: 'Дварф' },
-                        { value: 'halfling', name: 'Халфлинг' }
-                    ],
-                    classes: [
-                        { value: 'warrior', name: 'Воин' },
-                        { value: 'mage', name: 'Маг' },
-                        { value: 'rogue', name: 'Плут' },
-                        { value: 'cleric', name: 'Жрец' }
-                    ],
-                    backgrounds: [
-                        { value: 'noble', name: 'Дворянин' },
-                        { value: 'soldier', name: 'Солдат' },
-                        { value: 'sage', name: 'Мудрец' },
-                        { value: 'urchin', name: 'Беспризорник' }
-                    ]
-                };
-            },
-            computed: {
-                filteredCampaigns() {
-                    let filtered = this.campaigns;
+    const { createApp } = Vue;
 
-                    // Фильтр по сеттингу
-                    if (this.filters.setting) {
-                        filtered = filtered.filter(campaign => campaign.setting === this.filters.setting);
-                    }
+    createApp({
+        data() {
+            return {
+                userName: 'Игрок',
+                showUserMenu: false,
+                currentCharacter: null,
+                campaigns: [],
+                loading: true,
+                message: { text: '', success: false },
+                filters: {
+                    setting: '',
+                    level: '',
+                    status: ''
+                },
+                abilities: [
+                    { value: 'strength', abbr: 'СИЛ' },
+                    { value: 'dexterity', abbr: 'ЛВК' },
+                    { value: 'constitution', abbr: 'ТЕЛ' },
+                    { value: 'intelligence', abbr: 'ИНТ' },
+                    { value: 'wisdom', abbr: 'МДР' },
+                    { value: 'charisma', abbr: 'ХАР' }
+                ],
+                races: [
+                    { value: 'human', name: 'Человек' },
+                    { value: 'elf', name: 'Эльф' },
+                    { value: 'dwarf', name: 'Дварф' },
+                    { value: 'halfling', name: 'Халфлинг' }
+                ],
+                classes: [
+                    { value: 'warrior', name: 'Воин' },
+                    { value: 'mage', name: 'Маг' },
+                    { value: 'rogue', name: 'Плут' },
+                    { value: 'cleric', name: 'Жрец' }
+                ],
+                backgrounds: [
+                    { value: 'noble', name: 'Дворянин' },
+                    { value: 'soldier', name: 'Солдат' },
+                    { value: 'sage', name: 'Мудрец' },
+                    { value: 'urchin', name: 'Беспризорник' }
+                ]
+            };
+        },
 
-                    // Фильтр по уровню
-                    if (this.filters.level) {
-                        filtered = filtered.filter(campaign => campaign.startingLevel === this.filters.level);
-                    }
-
-                    // Фильтр по статусу
-                    if (this.filters.status) {
-                        if (this.filters.status === 'recruiting') {
-                            filtered = filtered.filter(campaign =>
-                                campaign.status === 'recruiting' &&
-                                (!campaign.current_players || campaign.current_players < campaign.maxPlayers)
-                            );
-                        } else if (this.filters.status === 'full') {
-                            filtered = filtered.filter(campaign =>
-                                campaign.current_players && campaign.current_players >= campaign.maxPlayers
-                            );
-                        } else if (this.filters.status === 'active') {
-                            filtered = filtered.filter(campaign => campaign.status === 'active');
-                        }
-                    }
-
-                    return filtered;
+        computed: {
+            filteredCampaigns() {
+                let filtered = this.campaigns;
+                if (this.filters.setting) filtered = filtered.filter(c => c.setting === this.filters.setting);
+                if (this.filters.level) {
+                    const lvl = parseInt(this.filters.level);
+                    filtered = filtered.filter(c => c.starting_level >= lvl);
                 }
-            },
-            methods: {
-                // Загрузка данных
-                loadUserData() {
-                    try {
-                        const userData = localStorage.getItem('current_user');
-                        if (userData) {
-                            const user = JSON.parse(userData);
-                            this.userName = user.username || 'Игрок';
-                            this.currentCharacter = user.character;
-
-                            if (!this.currentCharacter) {
-                                this.showMessage('Сначала создайте персонажа', false);
-                                setTimeout(() => {
-                                    window.location.href = 'character-creation.html';
-                                }, 2000);
-                            }
-                        } else {
-                            this.showMessage('Пожалуйста, войдите в систему', false);
-                            setTimeout(() => {
-                                window.location.href = 'login.html';
-                            }, 2000);
-                        }
-                    } catch (error) {
-                        console.error('Ошибка загрузки пользователя:', error);
-                    }
-                },
-
-                loadCampaigns() {
-                    try {
-                        const campaignsData = localStorage.getItem('dnd_campaigns');
-                        if (campaignsData) {
-                            this.campaigns = JSON.parse(campaignsData);
-                        } else {
-                            this.campaigns = [];
-                        }
-
-                        // Добавляем демо-кампании если нет созданных
-                        if (this.campaigns.length === 0) {
-                            this.createDemoCampaigns();
-                        }
-
-                        this.loading = false;
-                    } catch (error) {
-                        console.error('Ошибка загрузки кампаний:', error);
-                        this.loading = false;
-                    }
-                },
-
-                createDemoCampaigns() {
-                    const demoCampaigns = [
-                        {
-                            id: 1,
-                            name: 'Проклятие Древнего Леса',
-                            master_id: 999,
-                            master_name: 'Мастер Гэндальф',
-                            setting: 'forgotten-realms',
-                            plot: 'Таинственное проклятие опустилось на древний лес Эльдарвуд. Деревья шепчут предупреждения, а тени движутся самостоятельно. Героям предстоит раскрыть секреты древнего эльфийского рода и противостоять темной магии, угрожающей всему королевству.',
-                            tone: 'mysterious',
-                            maxPlayers: 4,
-                            startingLevel: '1',
-                            allowHomebrew: false,
-                            allowMulticlass: true,
-                            sessionFrequency: 'weekly',
-                            difficulty: 'medium',
-                            status: 'recruiting',
-                            current_players: 2,
-                            created_at: new Date().toISOString()
-                        },
-                        {
-                            id: 2,
-                            name: 'Восхождение Черного Дракона',
-                            master_id: 998,
-                            master_name: 'Мастер Мерлин',
-                            setting: 'eberron',
-                            plot: 'В горах Штормового Пика пробудился древний черный дракон. Армия культистов собирает артефакты для пробуждения еще более страшных существ. Только смелые герои могут остановить надвигающуюся тьму.',
-                            tone: 'heroic',
-                            maxPlayers: 5,
-                            startingLevel: '3',
-                            allowHomebrew: true,
-                            allowMulticlass: true,
-                            sessionFrequency: 'biweekly',
-                            difficulty: 'hard',
-                            status: 'recruiting',
-                            current_players: 3,
-                            created_at: new Date().toISOString()
-                        },
-                        {
-                            id: 3,
-                            name: 'Тени Равенлофта',
-                            master_id: 997,
-                            master_name: 'Мастер Страуд',
-                            setting: 'ravenloft',
-                            plot: 'Мрачные земли Равенлофта скрывают ужасные тайны. Граф вампиров собирает силы для наступления на мир живых. Герои должны объединиться, чтобы противостоять тьме, пока не стало слишком поздно.',
-                            tone: 'dark',
-                            maxPlayers: 4,
-                            startingLevel: '1',
-                            allowHomebrew: false,
-                            allowMulticlass: false,
-                            sessionFrequency: 'weekly',
-                            difficulty: 'deadly',
-                            status: 'full',
-                            current_players: 4,
-                            created_at: new Date().toISOString()
-                        }
-                    ];
-
-                    this.campaigns = demoCampaigns;
-                    localStorage.setItem('dnd_campaigns', JSON.stringify(demoCampaigns));
-                },
-
-                // Вспомогательные методы
-                getRaceName(raceValue) {
-                    const race = this.races.find(r => r.value === raceValue);
-                    return race ? race.name : '';
-                },
-
-                getClassName(classValue) {
-                    const classObj = this.classes.find(c => c.value === classValue);
-                    return classObj ? classObj.name : '';
-                },
-
-                getBackgroundName(bgValue) {
-                    const bg = this.backgrounds.find(b => b.value === bgValue);
-                    return bg ? bg.name : '';
-                },
-
-                getFinalAbilityScore(ability) {
-                    if (!this.currentCharacter) return 0;
-                    const baseScore = this.currentCharacter.abilities[ability];
-                    // Здесь можно добавить расовые бонусы
-                    return baseScore;
-                },
-
-                getSettingName(settingValue) {
-                    const settings = {
-                        'forgotten-realms': 'Забытые Королевства',
-                        'eberron': 'Эберрон',
-                        'ravenloft': 'Равенлофт',
-                        'dark-sun': 'Тёмное Солнце',
-                        'planescape': 'Планарные странствия',
-                        'spelljammer': 'Заклинательный Летун',
-                        'custom': 'Свой сеттинг'
-                    };
-                    return settings[settingValue] || settingValue;
-                },
-
-                getToneName(toneValue) {
-                    const tones = {
-                        'heroic': 'Героический',
-                        'dark': 'Тёмный',
-                        'humorous': 'Юмористический',
-                        'mysterious': 'Загадочный'
-                    };
-                    return tones[toneValue] || toneValue;
-                },
-
-                getDifficultyName(difficulty) {
-                    const difficulties = {
-                        'easy': 'Лёгкая',
-                        'medium': 'Средняя',
-                        'hard': 'Сложная',
-                        'deadly': 'Смертельная'
-                    };
-                    return difficulties[difficulty] || difficulty;
-                },
-
-                getStatusClass(campaign) {
-                    if (campaign.status === 'full' || (campaign.current_players && campaign.current_players >= campaign.maxPlayers)) {
-                        return 'full';
-                    }
-                    return campaign.status || 'recruiting';
-                },
-
-                getStatusText(campaign) {
-                    if (campaign.status === 'full' || (campaign.current_players && campaign.current_players >= campaign.maxPlayers)) {
-                        return 'Заполнена';
-                    }
-                    return campaign.status === 'recruiting' ? 'Набор открыт' : (campaign.status || 'Набор открыт');
-                },
-
-                canJoinCampaign(campaign) {
-                    // Проверяем, может ли игрок присоединиться к кампании
-                    if (campaign.status === 'full') return false;
-                    if (campaign.current_players && campaign.current_players >= campaign.maxPlayers) return false;
-
-                    // Проверяем уровень персонажа
-                    const characterLevel = this.currentCharacter ? this.currentCharacter.level : 1;
-                    const campaignLevel = parseInt(campaign.startingLevel);
-
-                    // Персонаж может присоединиться, если его уровень соответствует или выше требуемого
-                    return characterLevel >= campaignLevel;
-                },
-
-                getJoinButtonText(campaign) {
-                    if (!this.canJoinCampaign(campaign)) {
-                        if (campaign.status === 'full') return 'Кампания заполнена';
-                        if (campaign.current_players && campaign.current_players >= campaign.maxPlayers) return 'Нет мест';
-
-                        const characterLevel = this.currentCharacter ? this.currentCharacter.level : 1;
-                        const campaignLevel = parseInt(campaign.startingLevel);
-                        if (characterLevel < campaignLevel) return `Требуется ур. ${campaignLevel}`;
-
-                        return 'Нельзя присоединиться';
-                    }
-                    return 'Присоединиться';
-                },
-
-                // Присоединение к кампании
-                joinCampaign(campaign) {
-                    if (!this.canJoinCampaign(campaign)) {
-                        this.showMessage('Нельзя присоединиться к этой кампании', false);
-                        return;
-                    }
-
-                    try {
-                        // Получаем текущего пользователя
-                        const currentUser = JSON.parse(localStorage.getItem('current_user'));
-
-                        // Обновляем кампанию
-                        const campaigns = JSON.parse(localStorage.getItem('dnd_campaigns') || '[]');
-                        const campaignIndex = campaigns.findIndex(c => c.id === campaign.id);
-
-                        if (campaignIndex !== -1) {
-                            // Инициализируем players если его нет
-                            if (!campaigns[campaignIndex].players) {
-                                campaigns[campaignIndex].players = [];
-                            }
-
-                            // Добавляем персонажа в кампанию
-                            campaigns[campaignIndex].players.push({
-                                userId: currentUser.id,
-                                characterId: this.currentCharacter.id,
-                                characterName: this.currentCharacter.name,
-                                joinDate: new Date().toISOString()
-                            });
-
-                            // Обновляем количество игроков
-                            campaigns[campaignIndex].current_players = (campaigns[campaignIndex].current_players || 0) + 1;
-
-                            // Если достигнут максимум игроков, меняем статус
-                            if (campaigns[campaignIndex].current_players >= campaigns[campaignIndex].maxPlayers) {
-                                campaigns[campaignIndex].status = 'full';
-                            }
-
-                            localStorage.setItem('dnd_campaigns', JSON.stringify(campaigns));
-
-                            // Обновляем текущего пользователя
-                            currentUser.currentCampaign = campaign.id;
-                            localStorage.setItem('current_user', JSON.stringify(currentUser));
-
-                            this.showMessage(`Вы присоединились к кампании "${campaign.name}"!`, true);
-
-                            // Перенаправляем в игровой хаб
-                            setTimeout(() => {
-                                window.location.href = `game-hub.html?campaign=${campaign.id}`;
-                            }, 2000);
-                        }
-                    } catch (error) {
-                        console.error('Ошибка присоединения к кампании:', error);
-                        this.showMessage('Ошибка при присоединении к кампании', false);
-                    }
-                },
-
-                // Системные методы
-                toggleUserMenu() {
-                    this.showUserMenu = !this.showUserMenu;
-                },
-
-                logout() {
-                    localStorage.removeItem('current_user');
-                    this.showMessage('Вы вышли из системы', true);
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 1500);
-                },
-
-                showMessage(text, success) {
-                    this.message.text = text;
-                    this.message.success = success;
-                    setTimeout(() => {
-                        this.message.text = '';
-                    }, 4000);
+                if (this.filters.status === 'recruiting') {
+                    filtered = filtered.filter(c => c.status === 'recruiting');
                 }
-            },
-            mounted() {
-                this.loadUserData();
-                this.loadCampaigns();
-
-                console.log('🎮 Страница выбора кампаний загружена');
+                if (this.filters.status === 'full') {
+                    filtered = filtered.filter(c => (c.current_players || 0) >= (c.max_players || 4));
+                }
+                return filtered;
             }
-        }).mount('#app');
+        },
+
+        methods: {
+            async loadData() {
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // Загрузка имени пользователя
+                try {
+                    const res = await fetch(`${API_BASE}/api/auth/me`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.userName = data.user?.username || 'Игрок';
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+
+                // Загрузка текущего персонажа
+                const selectedChar = localStorage.getItem('selected_character');
+                if (selectedChar) {
+                    this.currentCharacter = JSON.parse(selectedChar);
+                }
+
+                await this.loadMyCampaigns();
+            },
+
+            async loadMyCampaigns() {
+                const token = localStorage.getItem('auth_token');
+                if (!token) return;
+
+                try {
+                    const res = await fetch(`${API_BASE}/api/campaigns/my`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.campaigns = data.campaigns || [];
+                    } else {
+                        this.showMessage('Не удалось загрузить кампании', false);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    this.showMessage('Ошибка соединения с сервером', false);
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+          selectCampaign(campaignId) {
+    if (!campaignId) {
+        console.error("selectCampaign: campaignId не передан");
+        return;
+    }
+
+    // Показываем уведомление пользователю (по желанию)
+    console.log(`Переходим в кампанию ID: ${campaignId}`);
+
+    // Небольшая задержка для плавности (можно убрать или уменьшить)
+    setTimeout(() => {
+        window.location.href = `game-hub.html?id=${campaignId}`;
+    }, 800); // 800 мс — комфортная задержка
+},
+            getRaceName(val) {
+                const race = this.races.find(r => r.value === val);
+                return race ? race.name : val;
+            },
+
+            getClassName(val) {
+                const cls = this.classes.find(c => c.value === val);
+                return cls ? cls.name : val;
+            },
+
+            getBackgroundName(val) {
+                const bg = this.backgrounds.find(b => b.value === val);
+                return bg ? bg.name : val;
+            },
+
+            getFinalAbilityScore(ability) {
+                if (!this.currentCharacter?.abilities) return 8;
+                return this.currentCharacter.abilities[ability] || 8;
+            },
+
+            getSettingName(setting) {
+                const map = {
+                    'forgotten-realms': 'Забытые Королевства',
+                    'eberron': 'Эберрон',
+                    'ravenloft': 'Равенлофт',
+                    'dark-sun': 'Тёмное Солнце',
+                    'planescape': 'Планарные странствия',
+                    'spelljammer': 'Заклинательный Летун',
+                    'custom': 'Свой сеттинг'
+                };
+                return map[setting] || setting || 'Неизвестный сеттинг';
+            },
+
+            getDifficultyName(diff) {
+                const map = { easy: 'Лёгкая', medium: 'Средняя', hard: 'Сложная', deadly: 'Смертельная' };
+                return map[diff] || diff;
+            },
+
+            getToneName(tone) {
+                const map = {
+                    heroic: 'Героический',
+                    dark: 'Тёмный',
+                    humorous: 'Юмористический',
+                    mysterious: 'Загадочный'
+                };
+                return map[tone] || tone;
+            },
+
+            getStatusClass(campaign) {
+                return campaign.status === 'recruiting' ? 'recruiting' : '';
+            },
+
+            getStatusText(campaign) {
+                return campaign.status === 'recruiting' ? 'Набор открыт' : 'Активна';
+            },
+
+            toggleUserMenu() {
+                this.showUserMenu = !this.showUserMenu;
+            },
+
+            logout() {
+                localStorage.removeItem('auth_token');
+                window.location.href = 'login.html';
+            },
+
+            showMessage(text, success) {
+                this.message.text = text;
+                this.message.success = success;
+                setTimeout(() => this.message.text = '', 4000);
+            }
+        },
+
+        mounted() {
+            this.loadData();
+        }
+    }).mount('#app');
     </script>
 </body>
 </html>

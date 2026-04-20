@@ -386,6 +386,58 @@
             border-radius: 15px;
             padding: 25px;
         }
+        .characters-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .character-card {
+            background: rgba(30, 25, 20, 0.85);
+            border: 2px solid #5a3c1a;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .character-card:hover {
+            border-color: #d4af37;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+        }
+        .character-card.selected {
+            border-color: #d4af37;
+            background: rgba(45, 35, 25, 0.95);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .character-name {
+            font-size: 1.6rem;
+            color: #d4af37;
+            font-weight: bold;
+        }
+        .character-info {
+            color: #b89a6a;
+            font-size: 1rem;
+        }
+        .select-btn {
+            margin-top: 15px;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(to bottom, #2e8b57, #1f5c3a);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+        .select-btn:hover {
+            background: linear-gradient(to bottom, #3cb371, #2e8b57);
+        }
 
         .inventory-list {
             max-height: 300px;
@@ -555,6 +607,58 @@
             background: #d4af37;
             border-radius: 3px;
         }
+        .characters-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .character-card {
+            background: rgba(30, 25, 20, 0.85);
+            border: 2px solid #5a3c1a;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .character-card:hover {
+            border-color: #d4af37;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+        }
+        .character-card.selected {
+            border-color: #d4af37;
+            background: rgba(45, 35, 25, 0.95);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .character-name {
+            font-size: 1.6rem;
+            color: #d4af37;
+            font-weight: bold;
+        }
+        .character-info {
+            color: #b89a6a;
+            font-size: 1rem;
+        }
+        .select-btn {
+            margin-top: 15px;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(to bottom, #2e8b57, #1f5c3a);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+        .select-btn:hover {
+            background: linear-gradient(to bottom, #3cb371, #2e8b57);
+        }
 
         @media (max-width: 1024px) {
             .sheet-grid {
@@ -592,218 +696,58 @@
 </head>
 <body>
     <div id="app">
-        <!-- Хедер -->
         <header class="header">
             <div class="header-content">
                 <div class="logo">
                     <h1>LORE</h1>
-                    <span class="subtitle">Лист Персонажа</span>
-                </div>
-                <div class="user-menu">
-                    <div class="user-avatar" @click="toggleUserMenu">
-                        <i class="fas fa-helmet-battle"></i>
-                        <span class="user-name">{{ userName }}</span>
-                        <i class="fas fa-caret-down"></i>
-                    </div>
-                    <div class="dropdown-menu" v-if="showUserMenu">
-                        <a href="dashboard.html" class="dropdown-item">
-                            <i class="fas fa-home"></i>
-                            Главная
-                        </a>
-                        <a href="choice.html" class="dropdown-item">
-                            <i class="fas fa-dragon"></i>
-                            Выбор Кампании
-                        </a>
-                        <a href="character-creation.html" class="dropdown-item">
-                            <i class="fas fa-user-plus"></i>
-                            Создать нового персонажа
-                        </a>
-                        <a href="campaign-creation.html" class="dropdown-item">
-                            <i class="fas fa-plus"></i>
-                            Создать кампанию
-                        </a>
-                        <a href="#" class="dropdown-item" @click="logout">
-                            <i class="fas fa-door-open"></i>
-                            Выйти
-                        </a>
-                    </div>
+                    <span class="subtitle">Мои Персонажи</span>
                 </div>
             </div>
         </header>
 
-        <!-- Основной контент -->
         <main class="main-content">
-            <div v-if="currentCharacter">
-                <!-- Заголовок персонажа -->
-                <div class="character-header">
-                    <h1 class="character-title">{{ currentCharacter.name }}</h1>
-                    <p class="character-subtitle">{{ getRaceName(currentCharacter.race) }} • {{ getClassName(currentCharacter.class) }}</p>
+            <h2 style="text-align:center; color:#d4af37; margin-bottom:40px;">
+                Выберите персонажа для игры
+            </h2>
 
-                    <div class="character-basic-info">
-                        <div class="info-item">
-                            <div class="info-label">Уровень</div>
-                            <div class="info-value">{{ currentCharacter.level }}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Опыт</div>
-                            <div class="info-value">{{ currentCharacter.experience || 0 }} XP</div>
-                        </div>
-                        <div class="info-item" v-if="currentCharacter.background">
-                            <div class="info-label">Предыстория</div>
-                            <div class="info-value">{{ getBackgroundName(currentCharacter.background) }}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Класс Доспеха</div>
-                            <div class="info-value">{{ calculateArmorClass() }}</div>
-                        </div>
+            <!-- Список персонажей -->
+            <div class="characters-list" v-if="characters.length > 0">
+                <div v-for="char in characters"
+                     :key="char.id"
+                     class="character-card"
+                     @click="selectCharacter(char)">
+
+                    <div class="character-name">{{ char.name }}</div>
+                    <div class="character-info">
+                        {{ getRaceName(char.race) }} • {{ getClassName(char.class) }} • Уровень {{ char.level }}
                     </div>
-                </div>
-
-                <!-- Основная сетка листа персонажа -->
-                <div class="sheet-grid">
-                    <!-- Левая колонка - Характеристики -->
-                    <div class="abilities-section">
-                        <h3 class="section-title">Характеристики</h3>
-                        <div class="abilities-list">
-                            <div class="ability-item" v-for="ability in abilities" :key="ability.value">
-                                <div class="ability-info">
-                                    <div class="ability-abbr">{{ ability.abbr }}</div>
-                                    <div class="ability-name">{{ ability.name }}</div>
-                                </div>
-                                <div class="ability-score">{{ getFinalAbilityScore(ability.value) }}</div>
-                                <div class="ability-modifier" :class="getModifierClass(getFinalModifier(ability.value))">
-                                    {{ formatModifier(getFinalModifier(ability.value)) }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="saving-throws">
-                            <h4 class="section-title">Спасброски</h4>
-                            <div class="saving-throw-item" v-for="ability in abilities" :key="ability.value">
-                                <span>{{ ability.name }}</span>
-                                <span :class="getModifierClass(getFinalModifier(ability.value))">
-                                    {{ formatModifier(getFinalModifier(ability.value)) }}
-                                </span>
-                            </div>
-                        </div>
+                    <div style="color:#8b6914; font-size:0.95rem;">
+                        Создан: {{ new Date(char.created_at).toLocaleDateString('ru-RU') }}
                     </div>
 
-                    <!-- Центральная колонка - Навыки и Боевые показатели -->
-                    <div class="center-column">
-                        <!-- Навыки -->
-                        <div class="skills-section">
-                            <h3 class="section-title">Навыки</h3>
-                            <div class="skills-grid">
-                                <div class="skill-item" v-for="skill in skills" :key="skill.value"
-                                     :class="{ 'proficient': currentCharacter.skills.includes(skill.value) }">
-                                    <div class="skill-checkbox"></div>
-                                    <span class="skill-name">{{ skill.name }}</span>
-                                    <span class="skill-modifier" :class="getModifierClass(getSkillModifier(skill))">
-                                        {{ formatModifier(getSkillModifier(skill)) }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Боевые показатели -->
-                        <div class="combat-stats">
-                            <h3 class="section-title">Боевые Показатели</h3>
-                            <div class="combat-grid">
-                                <div class="combat-stat">
-                                    <div class="combat-value">{{ calculateArmorClass() }}</div>
-                                    <div class="combat-label">Класс Доспеха</div>
-                                </div>
-                                <div class="combat-stat">
-                                    <div class="combat-value">{{ calculateInitiative() }}</div>
-                                    <div class="combat-label">Инициатива</div>
-                                </div>
-                                <div class="combat-stat">
-                                    <div class="combat-value">{{ calculateHP() }}</div>
-                                    <div class="combat-label">Хиты</div>
-                                </div>
-                                <div class="combat-stat">
-                                    <div class="combat-value">{{ calculateSpeed() }}</div>
-                                    <div class="combat-label">Скорость</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Правая колонка - Инвентарь и Описание -->
-                    <div class="right-column">
-                        <!-- Инвентарь -->
-                        <div class="inventory-section">
-                            <h3 class="section-title">Инвентарь</h3>
-                            <div class="inventory-list">
-                                <div class="inventory-item" v-for="item in inventory" :key="item.id">
-                                    <i class="item-icon" :class="item.icon"></i>
-                                    <span class="item-name">{{ item.name }}</span>
-                                    <span class="item-quantity" v-if="item.quantity > 1">x{{ item.quantity }}</span>
-                                </div>
-                                <div class="inventory-item" v-if="inventory.length === 0">
-                                    <i class="item-icon fas fa-box-open"></i>
-                                    <span class="item-name">Инвентарь пуст</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Особенности -->
-                        <div class="features-section">
-                            <h3 class="section-title">Особенности</h3>
-                            <div class="features-list">
-                                <div class="feature-item" v-for="feature in features" :key="feature.id">
-                                    <div class="feature-name">{{ feature.name }}</div>
-                                    <div class="feature-description">{{ feature.description }}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Описание -->
-                        <div class="description-section">
-                            <h3 class="section-title">Описание</h3>
-                            <div class="description-content">
-                                <p><strong>Раса:</strong> {{ getRaceDescription(currentCharacter.race) }}</p>
-                                <p><strong>Класс:</strong> {{ getClassDescription(currentCharacter.class) }}</p>
-                                <p v-if="currentCharacter.background">
-                                    <strong>Предыстория:</strong> {{ getBackgroundDescription(currentCharacter.background) }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Кнопки действий -->
-                <div class="action-buttons">
-                    <a href="choice.html" class="action-btn success">
-                        <i class="fas fa-dragon"></i>
-                        Выбрать Кампанию
-                    </a>
-                    <a href="character-creation.html" class="action-btn primary">
-                        <i class="fas fa-user-plus"></i>
-                        Создать Нового Персонажа
-                    </a>
-                    <button class="action-btn secondary" @click="printCharacterSheet">
-                        <i class="fas fa-print"></i>
-                        Распечатать
+                    <button class="select-btn" @click.stop="confirmSelection(char)">
+                        Выбрать этого персонажа
                     </button>
                 </div>
             </div>
 
-            <!-- Сообщение если персонаж не найден -->
-            <div class="no-character" v-else>
-                <div class="no-character-icon">
-                    <i class="fas fa-scroll"></i>
-                </div>
-                <h3>Персонаж не найден</h3>
-                <p>Создайте нового персонажа чтобы начать игру</p>
-                <a href="character-creation.html" class="action-btn primary" style="margin-top: 20px;">
-                    <i class="fas fa-user-plus"></i>
-                    Создать Персонажа
+            <!-- Если нет персонажей -->
+            <div v-else class="no-characters">
+                <h3>У вас пока нет персонажей</h3>
+                <p style="margin:20px 0;">Создайте своего первого героя, чтобы начать приключения</p>
+                <a href="character-creation.html" style="padding:14px 30px; background:#8b6914; color:white; text-decoration:none; border-radius:8px;">
+                    Создать первого персонажа
+                </a>
+            </div>
+
+            <!-- Кнопка создать нового -->
+            <div style="text-align:center; margin-top:50px;">
+                <a href="character-creation.html" style="padding:12px 25px; background:#5a3c1a; color:#e0d0b8; text-decoration:none; border-radius:8px;">
+                    <i class="fas fa-user-plus"></i> Создать нового персонажа
                 </a>
             </div>
         </main>
 
-        <!-- Уведомления -->
         <div class="message" :class="{ 'success': message.success, 'error': !message.success }" v-if="message.text">
             {{ message.text }}
         </div>
@@ -815,215 +759,79 @@
         createApp({
             data() {
                 return {
-                    userName: 'Игрок',
-                    showUserMenu: false,
-                    currentCharacter: null,
-                    message: {
-                        text: '',
-                        success: false
-                    },
-                    abilities: [
-                        { value: 'strength', name: 'Сила', abbr: 'СИЛ' },
-                        { value: 'dexterity', name: 'Ловкость', abbr: 'ЛВК' },
-                        { value: 'constitution', name: 'Телосложение', abbr: 'ТЕЛ' },
-                        { value: 'intelligence', name: 'Интеллект', abbr: 'ИНТ' },
-                        { value: 'wisdom', name: 'Мудрость', abbr: 'МДР' },
-                        { value: 'charisma', name: 'Харизма', abbr: 'ХАР' }
-                    ],
-                    skills: [
-                        { value: 'acrobatics', name: 'Акробатика', ability: 'dexterity' },
-                        { value: 'arcana', name: 'Магия', ability: 'intelligence' },
-                        { value: 'athletics', name: 'Атлетика', ability: 'strength' },
-                        { value: 'deception', name: 'Обман', ability: 'charisma' },
-                        { value: 'history', name: 'История', ability: 'intelligence' },
-                        { value: 'insight', name: 'Проницательность', ability: 'wisdom' },
-                        { value: 'intimidation', name: 'Запугивание', ability: 'charisma' },
-                        { value: 'investigation', name: 'Расследование', ability: 'intelligence' },
-                        { value: 'medicine', name: 'Медицина', ability: 'wisdom' },
-                        { value: 'nature', name: 'Природа', ability: 'intelligence' },
-                        { value: 'perception', name: 'Внимательность', ability: 'wisdom' },
-                        { value: 'performance', name: 'Выступление', ability: 'charisma' },
-                        { value: 'persuasion', name: 'Убеждение', ability: 'charisma' },
-                        { value: 'religion', name: 'Религия', ability: 'intelligence' },
-                        { value: 'sleight_of_hand', name: 'Ловкость рук', ability: 'dexterity' },
-                        { value: 'stealth', name: 'Скрытность', ability: 'dexterity' },
-                        { value: 'survival', name: 'Выживание', ability: 'wisdom' }
-                    ],
-                    inventory: [
-                        { id: 1, name: 'Длинный меч', icon: 'fas fa-sword', quantity: 1 },
-                        { id: 2, name: 'Кожаный доспех', icon: 'fas fa-vest', quantity: 1 },
-                        { id: 3, name: 'Щит', icon: 'fas fa-shield-alt', quantity: 1 },
-                        { id: 4, name: 'Зелье лечения', icon: 'fas fa-flask', quantity: 2 },
-                        { id: 5, name: 'Верёвка', icon: 'fas fa-rope', quantity: 1 },
-                        { id: 6, name: 'Факел', icon: 'fas fa-fire', quantity: 3 },
-                        { id: 7, name: 'Рационы', icon: 'fas fa-utensils', quantity: 5 }
-                    ],
-                    features: [
-                        {
-                            id: 1,
-                            name: 'Боевой стиль: Защита',
-                            description: 'Когда существо, которое вы можете видеть, атакует цель, отличную от вас, в пределах 5 футов от вас, вы можете использовать свою реакцию, чтобы наложить помеху на бросок атаки.'
-                        },
-                        {
-                            id: 2,
-                            name: 'Второе дыхание',
-                            description: 'Вы имеете ограниченный источник выносливы, на который можете положиться, чтобы защитить себя от вреда.'
-                        },
-                        {
-                            id: 3,
-                            name: 'Дополнительная атака',
-                            description: 'Вы можете атаковать дважды, вместо одного раза, когда совершаете действие Атака в свой ход.'
-                        }
-                    ],
-                    races: [
-                        { value: 'human', name: 'Человек', description: 'Адаптивные и амбициозные, люди быстро осваиваются в любых условиях и стремятся к величию.' },
-                        { value: 'elf', name: 'Эльф', description: 'Грациозные и долгоживущие, эльфы обладают острой интуицией и магическими способностями.' },
-                        { value: 'dwarf', name: 'Дварф', description: 'Выносливые и упрямые, дварфы знамениты своими навыками в ремесле и боевыми умениями.' },
-                        { value: 'halfling', name: 'Халфлинг', description: 'Везучие и проворные, халфлинги умеют находить выход из самых сложных ситуаций.' }
-                    ],
-                    classes: [
-                        { value: 'warrior', name: 'Воин', description: 'Мастер боевых искусств, владеющий любым оружием и доспехами.' },
-                        { value: 'mage', name: 'Маг', description: 'Ученый магии, способный творить заклинания огромной разрушительной силы.' },
-                        { value: 'rogue', name: 'Плут', description: 'Хитрый и ловкий боец, специализирующийся на скрытности и хитрости.' },
-                        { value: 'cleric', name: 'Жрец', description: 'Посланник божества, обладающий силой исцеления и защиты.' }
-                    ],
-                    backgrounds: [
-                        { value: 'noble', name: 'Дворянин', description: 'Вы выросли в аристократической семье и привыкли к роскоши и власти.' },
-                        { value: 'soldier', name: 'Солдат', description: 'Вы прошли военную подготовку и участвовали в многочисленных сражениях.' },
-                        { value: 'sage', name: 'Мудрец', description: 'Вы посвятили жизнь изучению древних знаний и магических искусств.' },
-                        { value: 'urchin', name: 'Беспризорник', description: 'Вы выросли на улицах и научились выживать в самых тяжелых условиях.' }
-                    ]
+                    characters: [],
+                    loading: true,
+                    message: { text: '', success: false }
                 };
             },
             methods: {
-                // Загрузка данных
-                loadUserData() {
-                    try {
-                        const userData = localStorage.getItem('current_user');
-                        if (userData) {
-                            const user = JSON.parse(userData);
-                            this.userName = user.username || 'Игрок';
-                            this.currentCharacter = user.character;
+                goToCharacterSheet() {
+    window.location.href = 'character-sheet.html';
+},
+                async loadMyCharacters() {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        this.showMessage('Вы не авторизованы', false);
+                        setTimeout(() => window.location.href = 'login.html', 1500);
+                        return;
+                    }
 
-                            if (!this.currentCharacter) {
-                                this.showMessage('Персонаж не найден', false);
-                            }
+                    try {
+                        const res = await fetch('http://localhost:3307/api/characters', {
+                            method: 'GET',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+
+                        const result = await res.json();
+
+                        if (result.success) {
+                            this.characters = result.characters || [];
                         } else {
-                            this.showMessage('Пожалуйста, войдите в систему', false);
-                            setTimeout(() => {
-                                window.location.href = 'login.html';
-                            }, 2000);
+                            this.showMessage(result.error || 'Не удалось загрузить персонажей', false);
                         }
-                    } catch (error) {
-                        console.error('Ошибка загрузки пользователя:', error);
+                    } catch (err) {
+                        console.error(err);
+                        this.showMessage('Ошибка подключения к серверу', false);
+                    } finally {
+                        this.loading = false;
                     }
                 },
 
-                // Вспомогательные методы
-                getRaceName(raceValue) {
-                    const race = this.races.find(r => r.value === raceValue);
-                    return race ? race.name : '';
+                selectCharacter(char) {
+                    // Можно добавить подсветку, если хочешь
                 },
 
-                getClassName(classValue) {
-                    const classObj = this.classes.find(c => c.value === classValue);
-                    return classObj ? classObj.name : '';
-                },
+                confirmSelection(char) {
+                    // Сохраняем выбранного персонажа (только ID + базовая информация)
+                    localStorage.setItem('selected_character_id', char.id);
+                    localStorage.setItem('selected_character', JSON.stringify(char));
 
-                getBackgroundName(bgValue) {
-                    const bg = this.backgrounds.find(b => b.value === bgValue);
-                    return bg ? bg.name : '';
-                },
+                    this.showMessage(`Персонаж "${char.name}" выбран!`, true);
 
-                getRaceDescription(raceValue) {
-                    const race = this.races.find(r => r.value === raceValue);
-                    return race ? race.description : '';
-                },
-
-                getClassDescription(classValue) {
-                    const classObj = this.classes.find(c => c.value === classValue);
-                    return classObj ? classObj.description : '';
-                },
-
-                getBackgroundDescription(bgValue) {
-                    const bg = this.backgrounds.find(b => b.value === bgValue);
-                    return bg ? bg.description : '';
-                },
-
-                getFinalAbilityScore(ability) {
-                    if (!this.currentCharacter) return 0;
-                    const baseScore = this.currentCharacter.abilities[ability];
-                    // Здесь можно добавить расовые бонусы
-                    return baseScore;
-                },
-
-                getFinalModifier(ability) {
-                    return Math.floor((this.getFinalAbilityScore(ability) - 10) / 2);
-                },
-
-                formatModifier(modifier) {
-                    return modifier >= 0 ? `+${modifier}` : modifier.toString();
-                },
-
-                getModifierClass(modifier) {
-                    return modifier > 0 ? 'positive' : (modifier < 0 ? 'negative' : '');
-                },
-
-                getSkillModifier(skill) {
-                    const baseModifier = this.getFinalModifier(skill.ability);
-                    const proficiency = this.currentCharacter.skills.includes(skill.value) ? 2 : 0;
-                    return baseModifier + proficiency;
-                },
-
-                // Расчеты боевых показателей
-                calculateArmorClass() {
-                    const baseAC = 10;
-                    const dexModifier = this.getFinalModifier('dexterity');
-                    return baseAC + dexModifier;
-                },
-
-                calculateInitiative() {
-                    return this.formatModifier(this.getFinalModifier('dexterity'));
-                },
-
-                calculateHP() {
-                    const baseHP = 10;
-                    const conModifier = this.getFinalModifier('constitution');
-                    return baseHP + conModifier;
-                },
-
-                calculateSpeed() {
-                    return '30 фт.';
-                },
-
-                // Системные методы
-                toggleUserMenu() {
-                    this.showUserMenu = !this.showUserMenu;
-                },
-
-                logout() {
-                    localStorage.removeItem('current_user');
-                    this.showMessage('Вы вышли из системы', true);
                     setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 1500);
+                        window.location.href = 'choice.html';   // ← сюда перейдёт после выбора
+                    }, 1400);
                 },
 
-                printCharacterSheet() {
-                    window.print();
+                getRaceName(race) {
+                    const map = { human:'Человек', elf:'Эльф', dwarf:'Дварф', halfling:'Халфлинг' };
+                    return map[race] || race;
+                },
+
+                getClassName(cls) {
+                    const map = { fighter:'Воин', wizard:'Маг', rogue:'Плут', cleric:'Жрец', warrior:'Воин', mage:'Маг' };
+                    return map[cls] || cls;
                 },
 
                 showMessage(text, success) {
                     this.message.text = text;
                     this.message.success = success;
-                    setTimeout(() => {
-                        this.message.text = '';
-                    }, 4000);
+                    setTimeout(() => this.message.text = '', 4000);
                 }
             },
+
             mounted() {
-                this.loadUserData();
-                console.log('📜 Лист персонажа загружен');
+                this.loadMyCharacters();
             }
         }).mount('#app');
     </script>
