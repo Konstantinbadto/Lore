@@ -37,7 +37,21 @@ app.use((req, res, next) => {
     res.setHeader('X-Frame-Options', 'DENY');
     next();
 });
+// ====================== РАЗДАЧА ФРОНТЕНДА ======================
+const path = require('path');
 
+// Раздаём все файлы из папки front
+app.use(express.static(path.join(__dirname, '../front')));
+
+// Главная страница
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../front', 'login.html'));
+});
+
+// Ловим все остальные GET-запросы (чтобы при обновлении страницы не было Cannot GET)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../front', 'login.html'));
+});
 // ====================== MySQL POOL ======================
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
