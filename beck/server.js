@@ -37,6 +37,16 @@ app.use((req, res, next) => {
     res.setHeader('X-Frame-Options', 'DENY');
     next();
 });
+// ====================== РАЗДАЧА ФРОНТЕНДА ======================
+// Раздача статических файлов — ДОЛЖНА БЫТЬ ОЧЕНЬ РАНО
+app.use('/static', express.static(path.join(__dirname, '../front')));   // попробуем через /static
+app.use(express.static(path.join(__dirname, '../front')));             // основной
+
+// Главная страница
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../front/login.html'));
+});
+
 
 // ====================== MySQL POOL ======================
 const pool = mysql.createPool({
@@ -548,16 +558,6 @@ app.get('/api/health', async (req, res) => {
         });
     }
 });
-// ====================== РАЗДАЧА ФРОНТЕНДА ======================
-// Раздача статических файлов — ДОЛЖНА БЫТЬ ОЧЕНЬ РАНО
-app.use('/static', express.static(path.join(__dirname, '../front')));   // попробуем через /static
-app.use(express.static(path.join(__dirname, '../front')));             // основной
-
-// Главная страница
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../front/login.html'));
-});
-
 // Catch-all — в самом конце, перед app.listen
 app.get('*', (req, res) => {
     if (req.path.startsWith('/api/')) {
