@@ -37,9 +37,7 @@ app.use((req, res, next) => {
     res.setHeader('X-Frame-Options', 'DENY');
     next();
 });
-const path = require('path');
-
-// Важно: static должен быть ПЕРЕД catch-all
+// ====================== РАЗДАЧА ФРОНТЕНДА ======================
 app.use(express.static(path.join(__dirname, '../front')));
 
 // Главная страница
@@ -47,14 +45,13 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../front', 'login.html'));
 });
 
-// Catch-all — только для маршрутов, которых нет (API + SPA)
+// Catch-all маршрут
 app.get('*', (req, res) => {
-    // Не перехватываем API
     if (req.path.startsWith('/api/')) {
         return res.status(404).json({ success: false, error: 'API endpoint not found' });
     }
     res.sendFile(path.join(__dirname, '../front', 'login.html'));
-});;
+});
 // ====================== MySQL POOL ======================
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
