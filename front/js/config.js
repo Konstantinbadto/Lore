@@ -16,3 +16,4 @@ API_CONFIG.API_BASE = API_CONFIG.getBaseUrl();
 window.API_CONFIG = API_CONFIG;
 
 console.log('✅ API_CONFIG загружен →', API_CONFIG.API_BASE);
+///
