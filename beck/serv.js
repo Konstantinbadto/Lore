@@ -14,20 +14,6 @@ const client = new cassandra.Client({
     keyspace: 'registration_db'
 });
 
-// Создание keyspace и таблицы (выполнить один раз)
-/*
-CREATE KEYSPACE IF NOT EXISTS registration_db
-WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
-
-USE registration_db;
-
-CREATE TABLE IF NOT EXISTS users (
-    id uuid PRIMARY KEY,
-    name text,
-    email text,
-    created_at timestamp
-);
-*/
 
 app.post('/api/register', async (req, res) => {
     try {
