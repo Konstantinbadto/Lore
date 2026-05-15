@@ -40,9 +40,6 @@ app.use((req, res, next) => {
 // ====================== РАЗДАЧА ФРОНТЕНДА ======================
 const path = require('path');
 
-// Раздаём все файлы из папки front
-app.use(express.static(path.join(__dirname, '../front')));
-
 // Главная страница
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../front', 'login.html'));
