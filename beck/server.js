@@ -21,7 +21,7 @@ const cors = require('cors');
 const mysql = require('mysql2/promise');
 
 const app = express();
-const PORT = process.env.PORT || 3307;
+const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-2026-change-me-please!';
 
 // ====================== MIDDLEWARE ======================
@@ -37,16 +37,24 @@ app.use((req, res, next) => {
     res.setHeader('X-Frame-Options', 'DENY');
     next();
 });
-// ====================== РАЗДАЧА ФРОНТЕНДА ======================
+const path = require('path');
+
+// Важно: static должен быть ПЕРЕД catch-all
+app.use(express.static(path.join(__dirname, '../front')));
+
 // Главная страница
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../front', 'login.html'));
 });
 
-// Ловим все остальные GET-запросы (чтобы при обновлении страницы не было Cannot GET)
+// Catch-all — только для маршрутов, которых нет (API + SPA)
 app.get('*', (req, res) => {
+    // Не перехватываем API
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ success: false, error: 'API endpoint not found' });
+    }
     res.sendFile(path.join(__dirname, '../front', 'login.html'));
-});
+});;
 // ====================== MySQL POOL ======================
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
