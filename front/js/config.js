@@ -1,6 +1,5 @@
 // front/js/config.js
 const API_CONFIG = {
-    // Автоматически определяет окружение
     getBaseUrl: function() {
         const hostname = window.location.hostname;
 
@@ -9,7 +8,7 @@ const API_CONFIG = {
             return "http://localhost:3307";
         }
 
-        // На Render.com и других хостингах
+        // Продакшен (Render)
         return "";
     }
 };
@@ -17,7 +16,7 @@ const API_CONFIG = {
 // Инициализация
 API_CONFIG.API_BASE = API_CONFIG.getBaseUrl();
 
-// Делаем доступным глобально
+// Делаем глобально доступным
 window.API_CONFIG = API_CONFIG;
 
-console.log('✅ API_CONFIG загружен. Base:', API_CONFIG.API_BASE);
+console.log('✅ API_CONFIG загружен →', API_CONFIG.API_BASE);
